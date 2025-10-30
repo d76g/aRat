@@ -166,6 +166,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
       if (response?.ok) {
         toast.success('Post updated successfully!')
+        router.refresh() // Force refresh to show changes
         router.push(`/projects/${params.id}`)
       } else {
         const errorData = await response.json()
@@ -190,6 +191,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
       if (response?.ok) {
         toast.success('Post deleted successfully!')
+        router.refresh() // Force refresh to show changes
         router.push(`/projects/${params.id}`)
       } else {
         const errorData = await response.json()
