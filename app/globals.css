@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent horizontal scrolling on mobile */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Mobile modal improvements */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific fixes */
+  .modal-open {
+    position: fixed;
+    width: 100%;
+  }
+}
+
+/* Better mobile viewport handling */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Ensure dialogs don't cause zoom on input focus */
+  input, textarea, select {
+    font-size: 16px;
+  }
+  
+  /* Prevent body scroll when modal is open */
+  body.modal-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Improve touch targets on mobile */
+  button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Fix for react-image-crop on mobile */
+  .ReactCrop {
+    touch-action: none;
+  }
+  
+  .ReactCrop__crop-selection {
+    touch-action: none;
+  }
+  
+  /* Enhanced modal scrolling fixes */
+  [data-radix-portal] {
+    /* Ensure portals (modals) are properly contained */
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 50 !important;
+  }
+  
+  /* Fix dialog content scrolling */
+  [role="dialog"] {
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure dialog content area is scrollable */
+  .dialog-content-area {
+    max-height: calc(100vh - 120px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for any remaining scroll issues in forms */
+  .mobile-form-container {
+    max-height: calc(100vh - 160px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 60px;
+  }
+}
+ 
+@layer base {
+  :root {
+    /* Prieelo Brand Colors */
+    --background: 0 0% 100%;
+    --foreground: 100 27% 20%; /* Dark Green #324426 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 100 27% 20%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 100 27% 20%;
+ 
+    --primary: 100 27% 20%; /* Dark Green #324426 */
+    --primary-foreground: 60 44% 95%; /* Light Cream #f6f6d6 */
+ 
+    --secondary: 213 55% 76%; /* Light Blue #a1c0e5 */
+    --secondary-foreground: 100 27% 20%;
+ 
+    --muted: 60 44% 95%; /* Light Cream #f6f6d6 */
+    --muted-foreground: 100 27% 40%;
+ 
+    --accent: 11 84% 54%; /* Orange #ed4924 */
+    --accent-foreground: 0 0% 100%;
+ 
+    --destructive: 11 84% 54%; /* Orange #ed4924 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 100 27% 85%;
+    --input: 100 27% 85%;
+    --ring: 100 27% 20%;
+ 
+    --radius: 0.5rem;
+    
+    --chart-1: 100 27% 20%; /* Dark Green */
+    --chart-2: 11 84% 54%; /* Orange */
+    --chart-3: 213 55% 76%; /* Light Blue */
+    --chart-4: 60 44% 95%; /* Light Cream */
+    --chart-5: 100 27% 40%; /* Medium Green */
+  }
+ 
+  .dark {
+    --background: 100 27% 10%; /* Darker Green */
+    --foreground: 60 44% 95%; /* Light Cream */
+ 
+    --card: 100 27% 15%;
+    --card-foreground: 60 44% 95%;
+ 
+    --popover: 100 27% 15%;
+    --popover-foreground: 60 44% 95%;
+ 
+    --primary: 60 44% 95%; /* Light Cream */
+    --primary-foreground: 100 27% 20%; /* Dark Green */
+ 
+    --secondary: 213 55% 50%; /* Darker Blue */
+    --secondary-foreground: 60 44% 95%;
+ 
+    --muted: 100 27% 25%;
+    --muted-foreground: 213 55% 76%;
+ 
+    --accent: 11 84% 54%; /* Orange */
+    --accent-foreground: 0 0% 100%;
+ 
+    --destructive: 11 84% 45%;
+    --destructive-foreground: 0 0% 100%;
+ 
+    --border: 100 27% 30%;
+    --input: 100 27% 30%;
+    --ring: 60 44% 95%;
+    
+    --chart-1: 60 44% 95%; /* Light Cream */
+    --chart-2: 11 84% 54%; /* Orange */
+    --chart-3: 213 55% 76%; /* Light Blue */
+    --chart-4: 100 27% 40%; /* Medium Green */
+    --chart-5: 100 27% 60%; /* Light Green */
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js / Build output
+.next/
+out/
+dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Coverage / Testing
+coverage/
+
+# Cache
+.next/cache/
+.cache/
+.turbo/
+
+# Prisma (generated at runtime)
+prisma/*.db
+prisma/*.db-journal
+
+# Misc platform configs
+.vercel/
+
+# Local uploads (if used in dev)
+uploads/

@@ -1,0 +1,185 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/prieelo_mvp/app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  username  String   @unique
+  firstName String?
+  lastName  String?
+  bio       String?
+  avatar    String?
+  isAdmin   Boolean  @default(false)
+  isApproved Boolean @default(false)
+  status    UserStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  accounts   Account[]
+  sessions   Session[]
+  projects   Project[]
+  comments   Comment[]
+  likes      Like[]
+  postLikes  PostLike[]
+
+  @@map("users")
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Project {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  isPublic    Boolean     @default(true)
+  currentPhase String     @default("material") // "material", "process", "masterpiece"
+  userId      String      @map("user_id")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phases       ProjectPhase[]
+  comments     Comment[]
+  likes        Like[]
+
+  @@map("projects")
+}
+
+model ProjectPhase {
+  id               String   @id @default(cuid())
+  phaseType        String   // "material", "process", "masterpiece"
+  title            String?
+  description      String?
+  images           String[] // Array of S3 keys/URLs
+  isPublic         Boolean  @default(true)
+  projectId        String   @map("project_id")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    PostLike[]
+
+  @@map("project_phases")
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  postId    String   @map("post_id")
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ProjectPhase @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("post_likes")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String   @map("user_id")
+  projectId String?  @map("project_id")
+  postId    String?  @map("post_id")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  post    ProjectPhase? @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  projectId String   @map("project_id")
+  createdAt DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@map("likes")
+}
+
+model ModerationAction {
+  id        String   @id @default(cuid())
+  type      ModerationType
+  entityType String  // 'user', 'project', 'post', 'comment'
+  entityId  String
+  reason    String?
+  adminId   String   @map("admin_id")
+  createdAt DateTime @default(now())
+
+  @@map("moderation_actions")
+}
+
+enum ModerationType {
+  APPROVE
+  REJECT
+  SUSPEND
+  DELETE
+  WARN
+}
