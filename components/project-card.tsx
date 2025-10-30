@@ -93,6 +93,7 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                cacheBust={new Date(project?.updatedAt ?? Date.now()).getTime()}
               />
               {/* Project name overlay on top left */}
               <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md">

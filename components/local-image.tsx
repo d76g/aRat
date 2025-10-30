@@ -13,6 +13,7 @@ interface LocalImageProps {
   width?: number
   height?: number
   priority?: boolean
+  cacheBust?: string | number
 }
 
 export function LocalImage({ 
@@ -23,7 +24,8 @@ export function LocalImage({
   sizes, 
   width, 
   height, 
-  priority 
+  priority,
+  cacheBust
 }: LocalImageProps) {
   const [imageUrl, setImageUrl] = useState<string>('')
   const [loading, setLoading] = useState(true)
@@ -65,7 +67,9 @@ export function LocalImage({
     
     // Generate URL directly without server-side calls
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://prieelo.com'
-    const publicUrl = `${baseUrl}/uploads/${src}`
+    const hasQuery = src.includes('?')
+    const versionSuffix = cacheBust ? `${hasQuery ? '&' : '?'}v=${cacheBust}` : ''
+    const publicUrl = `${baseUrl}/uploads/${src}${versionSuffix}`
     
     console.log(`[LocalImage] Generated public URL: ${publicUrl}`)
     setImageUrl(publicUrl)

@@ -242,6 +242,7 @@ export function PostCard({
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                cacheBust={new Date(post?.updatedAt ?? Date.now()).getTime()}
               />
               {/* Project name overlay on top left - clickable */}
               <Link href={`/projects/${post?.project?.id}`}>
