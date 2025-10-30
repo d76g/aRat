@@ -166,8 +166,8 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
       if (response?.ok) {
         toast.success('Post updated successfully!')
-        router.refresh() // Force refresh to show changes
-        router.push(`/projects/${params.id}`)
+        // Force a hard refresh by adding a timestamp
+        window.location.href = `/projects/${params.id}?updated=${Date.now()}`
       } else {
         const errorData = await response.json()
         setError(errorData?.message || 'Failed to update post')
@@ -191,8 +191,8 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
       if (response?.ok) {
         toast.success('Post deleted successfully!')
-        router.refresh() // Force refresh to show changes
-        router.push(`/projects/${params.id}`)
+        // Force a hard refresh by adding a timestamp
+        window.location.href = `/projects/${params.id}?deleted=${Date.now()}`
       } else {
         const errorData = await response.json()
         toast.error(errorData?.message || 'Failed to delete post')
