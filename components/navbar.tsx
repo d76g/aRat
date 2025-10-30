@@ -119,7 +119,7 @@ export function Navbar() {
                   <Button size="sm" className="text-xs sm:text-sm">{t('signUp')}</Button>
                 </Link>
               </div>
-              <Link href="https://app.formbricks.com/s/hfcyr586pefyb695tmhmj88m" target="_blank" className="hidden sm:block">
+              <Link href="https://form.typeform.com/to/tS5qFUcs" target="_blank" className="hidden sm:block">
                 <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm">
                   Become a Remaker
                 </Button>
