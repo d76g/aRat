@@ -1,5 +1,7 @@
 import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
-  seed: 'tsx --require dotenv/config scripts/seed.ts'
+  seed: 'tsx --require dotenv/config scripts/seed.ts',
+  // Ensure environment variables are loaded
+  envFile: '.env'
 })
