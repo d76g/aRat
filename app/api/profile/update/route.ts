@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
 import { prisma } from '@/lib/db'
+import { getFileUrl } from '@/lib/local-storage'
 import { uploadFile } from '@/lib/local-storage'
 
 export async function POST(request: NextRequest) {
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(await avatarFile.arrayBuffer())
         const fileName = 'avatar-' + session.user.id + '-' + Date.now() + '.' + avatarFile.name.split('.').pop()
         const cloudStoragePath = await uploadFile(buffer, fileName)
-        avatarUrl = 'https://' + process.env.AWS_BUCKET_NAME + '.s3.' + process.env.AWS_REGION + '.amazonaws.com/' + cloudStoragePath
+        avatarUrl = await getFileUrl(cloudStoragePath)
       } catch (uploadError) {
         console.error('Error uploading avatar:', uploadError)
         return NextResponse.json({ error: 'Failed to upload avatar' }, { status: 500 })

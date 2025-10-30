@@ -77,12 +77,13 @@ export default function ProfileSettings({ params }: { params: { username: string
       const response = await fetch('/api/profile/me')
       if (response.ok) {
         const data = await response.json()
+        const u = data.user || data
         setProfileData({
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          bio: data.bio || '',
-          email: data.email || '',
-          avatar: data.avatar
+          firstName: u.firstName || '',
+          lastName: u.lastName || '',
+          bio: u.bio || '',
+          email: u.email || '',
+          avatar: u.avatar || null,
         })
       }
     } catch (error) {
