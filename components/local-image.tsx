@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { getLocalImageUrl } from '@/lib/image-utils'
 
 interface LocalImageProps {
   src: string // Local path or full URL
@@ -29,59 +28,35 @@ export function LocalImage({
   const [imageUrl, setImageUrl] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
-    const loadImage = async () => {
-      if (!src) {
-        setError(true)
-        setLoading(false)
-        return
-      }
-
-      try {
-        setLoading(true)
-        setError(false)
-        
-        // If it's already a full URL, use it directly
-        if (src.startsWith('http')) {
-          setImageUrl(src)
-          setLoading(false)
-          return
-        }
-        
-        // It's a local path, convert to public URL
-        console.log(`[LocalImage] Loading image for path: ${src}`)
-        const publicUrl = await getLocalImageUrl(src)
-        
-        if (publicUrl) {
-          console.log(`[LocalImage] Successfully got public URL for: ${src}`)
-          setImageUrl(publicUrl)
-        } else {
-          console.error(`[LocalImage] Got empty public URL for: ${src}`)
-          setError(true)
-        }
-      } catch (err: any) {
-        console.error(`[LocalImage] Error loading image for path ${src}:`, err)
-        
-        // Retry once after a short delay
-        if (retryCount < 1) {
-          console.log(`[LocalImage] Retrying in 2 seconds... (attempt ${retryCount + 1})`)
-          setTimeout(() => {
-            setRetryCount(prev => prev + 1)
-          }, 2000)
-        } else {
-          setError(true)
-        }
-      } finally {
-        if (retryCount >= 1 || error) {
-          setLoading(false)
-        }
-      }
+    if (!src) {
+      setError(true)
+      setLoading(false)
+      return
     }
 
-    loadImage()
-  }, [src, retryCount])
+    setLoading(true)
+    setError(false)
+    
+    // If it's already a full URL, use it directly
+    if (src.startsWith('http')) {
+      setImageUrl(src)
+      setLoading(false)
+      return
+    }
+    
+    // It's a local path, convert to public URL
+    console.log(`[LocalImage] Loading image for path: ${src}`)
+    
+    // Generate URL directly without server-side calls
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://prieelo.com'
+    const publicUrl = `${baseUrl}/api/uploads/${src}`
+    
+    console.log(`[LocalImage] Generated public URL: ${publicUrl}`)
+    setImageUrl(publicUrl)
+    setLoading(false)
+  }, [src])
 
   if (loading) {
     return (

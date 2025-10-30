@@ -1,6 +1,4 @@
 
-import { getFileUrl } from './local-storage'
-
 // Cache for public URLs to avoid regenerating them frequently
 const publicUrlCache = new Map<string, { url: string, expires: number }>()
 
@@ -24,7 +22,10 @@ export async function getLocalImageUrl(localPath: string): Promise<string> {
   
   try {
     console.log(`Generating public URL for: ${localPath}`)
-    const publicUrl = await getFileUrl(localPath)
+    
+    // Generate public URL without using server-side fs module
+    const baseUrl = process.env.BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://prieelo.com')
+    const publicUrl = `${baseUrl}/api/uploads/${localPath}`
     
     if (!publicUrl) {
       throw new Error('Failed to generate public URL')
