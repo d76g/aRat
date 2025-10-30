@@ -1,66 +1,66 @@
 
-import { downloadFile } from './s3'
+import { getFileUrl } from './local-storage'
 
-// Cache for signed URLs to avoid regenerating them frequently
-const signedUrlCache = new Map<string, { url: string, expires: number }>()
+// Cache for public URLs to avoid regenerating them frequently
+const publicUrlCache = new Map<string, { url: string, expires: number }>()
 
-export async function getSignedImageUrl(s3Key: string): Promise<string> {
-  if (!s3Key) {
-    console.warn('getSignedImageUrl called with empty s3Key')
+export async function getLocalImageUrl(localPath: string): Promise<string> {
+  if (!localPath) {
+    console.warn('getLocalImageUrl called with empty localPath')
     return ''
   }
   
-  // If it's already a full URL (legacy data or already signed), return as is
-  if (s3Key.startsWith('http')) {
-    return s3Key
+  // If it's already a full URL, return as is
+  if (localPath.startsWith('http')) {
+    return localPath
   }
   
-  // Check cache first (valid for 12 hours, URLs are valid for 24 hours)
-  const cached = signedUrlCache.get(s3Key)
+  // Check cache first (valid for 24 hours since URLs don't expire)
+  const cached = publicUrlCache.get(localPath)
   if (cached && Date.now() < cached.expires) {
-    console.log(`Using cached signed URL for: ${s3Key}`)
+    console.log(`Using cached public URL for: ${localPath}`)
     return cached.url
   }
   
   try {
-    console.log(`Generating signed URL for: ${s3Key}`)
-    const signedUrl = await downloadFile(s3Key)
+    console.log(`Generating public URL for: ${localPath}`)
+    const publicUrl = await getFileUrl(localPath)
     
-    if (!signedUrl) {
-      throw new Error('Failed to generate signed URL')
+    if (!publicUrl) {
+      throw new Error('Failed to generate public URL')
     }
     
-    // Cache for 12 hours (signed URLs are valid for 24 hours)
-    signedUrlCache.set(s3Key, {
-      url: signedUrl,
-      expires: Date.now() + (12 * 60 * 60 * 1000)
+    // Cache for 24 hours (URLs don't expire but we cache to avoid repeated calls)
+    publicUrlCache.set(localPath, {
+      url: publicUrl,
+      expires: Date.now() + (24 * 60 * 60 * 1000)
     })
     
-    console.log(`Generated signed URL successfully for: ${s3Key}`)
-    return signedUrl
+    console.log(`Generated public URL successfully for: ${localPath}`)
+    return publicUrl
   } catch (error) {
-    console.error('Error generating signed URL for key:', s3Key, error)
+    console.error('Error generating public URL for path:', localPath, error)
     
     // Clear cache entry if it exists
-    signedUrlCache.delete(s3Key)
+    publicUrlCache.delete(localPath)
     
     throw error
   }
 }
 
-export async function getSignedImageUrls(s3Keys: string[]): Promise<string[]> {
-  if (!s3Keys || s3Keys.length === 0) return []
+export async function getLocalImageUrls(localPaths: string[]): Promise<string[]> {
+  if (!localPaths || localPaths.length === 0) return []
   
   // Process in parallel but handle errors individually
   const results = await Promise.allSettled(
-    s3Keys.map(key => getSignedImageUrl(key))
+    localPaths.map(path => getLocalImageUrl(path))
   )
   
   return results.map((result, index) => {
     if (result.status === 'fulfilled') {
       return result.value
     } else {
-      console.error(`Failed to get signed URL for key ${s3Keys[index]}:`, result.reason)
+      console.error(`Failed to get public URL for path ${localPaths[index]}:`, result.reason)
       return '' // Return empty string for failed URLs
     }
   })
@@ -68,10 +68,10 @@ export async function getSignedImageUrls(s3Keys: string[]): Promise<string[]> {
 
 // Helper function to clear cache
 export function clearImageUrlCache() {
-  signedUrlCache.clear()
+  publicUrlCache.clear()
 }
 
 // Helper function to clear specific cache entry
-export function clearImageUrlCacheForKey(key: string) {
-  signedUrlCache.delete(key)
+export function clearImageUrlCacheForPath(path: string) {
+  publicUrlCache.delete(path)
 }

@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Heart, MessageCircle, Share2, User } from 'lucide-react'
 import Link from 'next/link'
-import { S3Image } from '@/components/s3-image'
+import { LocalImage } from '@/components/local-image'
 import { motion } from 'framer-motion'
 import { PHASE_LABELS } from '@/lib/types'
 import { useSession } from 'next-auth/react'
@@ -87,7 +87,7 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
         <div className="relative">
           {mainImage ? (
             <div className="relative aspect-[4/3] bg-muted">
-              <S3Image
+              <LocalImage
                 src={mainImage}
                 alt={project?.title ?? 'Project image'}
                 fill

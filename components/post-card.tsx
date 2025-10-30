@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Heart, MessageCircle, Share2, User, Edit3, Send } from 'lucide-react'
 import Link from 'next/link'
-import { S3Image } from '@/components/s3-image'
+import { LocalImage } from '@/components/local-image'
 import { motion } from 'framer-motion'
 import { PHASE_LABELS } from '@/lib/types'
 import { useSession } from 'next-auth/react'
@@ -236,7 +236,7 @@ export function PostCard({
         <div className="relative">
           {mainImage ? (
             <div className={`relative ${aspectRatio} bg-muted`}>
-              <S3Image
+              <LocalImage
                 src={mainImage}
                 alt={post?.title ?? post?.project?.title ?? 'Post image'}
                 fill

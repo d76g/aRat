@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
-import { uploadFile, downloadFile } from '@/lib/s3'
+import { uploadFile, getFileUrl } from '@/lib/local-storage'
 import { prisma } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Convert file to buffer for S3 upload
+    // Convert file to buffer for local upload
     const buffer = Buffer.from(await file.arrayBuffer())
     const fileName = file.name
     const contentType = file.type
@@ -75,19 +75,19 @@ export async function POST(request: NextRequest) {
     
     console.log(`Uploading file: ${uniqueFileName}, type: ${contentType}, size: ${buffer.length} bytes`)
     
-    // Upload to S3 with content type
+    // Upload to local storage with content type
     const cloud_storage_path = await uploadFile(buffer, uniqueFileName, contentType)
     
-    console.log(`File uploaded to S3 with key: ${cloud_storage_path}`)
+    console.log(`File uploaded locally with path: ${cloud_storage_path}`)
     
-    // Generate signed URL for immediate access
-    const signedUrl = await downloadFile(cloud_storage_path)
+    // Generate public URL for immediate access
+    const publicUrl = await getFileUrl(cloud_storage_path)
     
-    console.log(`Generated signed URL for immediate preview`)
+    console.log(`Generated public URL for immediate preview: ${publicUrl}`)
     
     return NextResponse.json({
       success: true,
-      url: signedUrl, // This is for immediate preview
+      url: publicUrl, // This is for immediate preview
       cloud_storage_path: cloud_storage_path, // This should be stored in DB
       message: 'File uploaded successfully'
     })
@@ -96,12 +96,12 @@ export async function POST(request: NextRequest) {
     
     // Provide more detailed error messages
     let errorMessage = 'Failed to upload file'
-    if (error?.message?.includes('AccessDenied')) {
-      errorMessage = 'S3 access denied. Please contact support.'
-    } else if (error?.message?.includes('NoSuchBucket')) {
-      errorMessage = 'S3 bucket not found. Please contact support.'
-    } else if (error?.message?.includes('NetworkError')) {
-      errorMessage = 'Network error. Please check your connection and try again.'
+    if (error?.message?.includes('ENOSPC')) {
+      errorMessage = 'Server storage full. Please contact support.'
+    } else if (error?.message?.includes('EACCES')) {
+      errorMessage = 'Server permission error. Please contact support.'
+    } else if (error?.message?.includes('EMFILE') || error?.message?.includes('ENFILE')) {
+      errorMessage = 'Server resource limit reached. Please try again later.'
     } else if (error?.message) {
       errorMessage = `Upload failed: ${error.message}`
     }
