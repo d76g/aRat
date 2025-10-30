@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs'
 import path from 'path'
+import logger from './logger'
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || '/var/www/prieelo/uploads'
 const BASE_URL = process.env.BASE_URL || 'https://prieelo.com'
@@ -10,7 +11,7 @@ export async function ensureUploadDir() {
     await fs.access(UPLOAD_DIR)
   } catch {
     await fs.mkdir(UPLOAD_DIR, { recursive: true })
-    console.log(`Created upload directory: ${UPLOAD_DIR}`)
+    logger.info('Created upload directory', { uploadDir: UPLOAD_DIR })
   }
 }
 
@@ -36,12 +37,12 @@ export async function uploadFile(buffer: Buffer, fileName: string, contentType?:
     // Write file to disk
     await fs.writeFile(filePath, buffer)
     
-    console.log(`File uploaded locally: ${filePath}`)
+    logger.info('File uploaded locally', { filePath, relativePath, contentType })
     
     // Return relative path for database storage (compatible with S3 key format)
     return relativePath
   } catch (error) {
-    console.error('Error uploading file locally:', error)
+    logger.error('Error uploading file locally', { error: (error as Error)?.message })
     throw error
   }
 }
@@ -64,9 +65,9 @@ export async function deleteFile(relativePath: string): Promise<void> {
   try {
     const fullPath = path.join(UPLOAD_DIR, relativePath)
     await fs.unlink(fullPath)
-    console.log(`File deleted: ${fullPath}`)
+    logger.info('File deleted', { fullPath })
   } catch (error) {
-    console.error(`Error deleting file ${relativePath}:`, error)
+    logger.warn('Error deleting file (ignored)', { relativePath, error: (error as Error)?.message })
     // Don't throw - file might already be deleted
   }
 }
@@ -90,11 +91,11 @@ export async function renameFile(oldPath: string, newPath: string): Promise<stri
     await fs.mkdir(path.dirname(newFullPath), { recursive: true })
     
     await fs.rename(oldFullPath, newFullPath)
-    console.log(`File renamed: ${oldPath} -> ${newPath}`)
+    logger.info('File renamed', { oldPath, newPath })
     
     return newPath
   } catch (error) {
-    console.error(`Error renaming file ${oldPath} to ${newPath}:`, error)
+    logger.error('Error renaming file', { oldPath, newPath, error: (error as Error)?.message })
     throw error
   }
 }
@@ -111,7 +112,7 @@ export async function getFileStats(relativePath: string) {
       isFile: stats.isFile()
     }
   } catch (error) {
-    console.error(`Error getting file stats for ${relativePath}:`, error)
+    logger.warn('Error getting file stats', { relativePath, error: (error as Error)?.message })
     return null
   }
 }

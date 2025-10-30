@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from './db'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import logger from './logger'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -104,7 +105,7 @@ export const authOptions: NextAuthOptions = {
             session.user.isAdmin = currentUser.isAdmin
           }
         } catch (error) {
-          console.error('Session validation error:', error)
+          logger.warn('Session validation error', { error: (error as Error)?.message })
           // Don't fail the entire session for database errors
         }
       }

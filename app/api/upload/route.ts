@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
 import { uploadFile, getFileUrl } from '@/lib/local-storage'
 import { prisma } from '@/lib/db'
+import logger from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,17 +74,17 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now()
     const uniqueFileName = `${timestamp}-${fileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`
     
-    console.log(`Uploading file: ${uniqueFileName}, type: ${contentType}, size: ${buffer.length} bytes`)
+    logger.info('Uploading file', { fileName: uniqueFileName, contentType, size: buffer.length })
     
     // Upload to local storage with content type
     const cloud_storage_path = await uploadFile(buffer, uniqueFileName, contentType)
     
-    console.log(`File uploaded locally with path: ${cloud_storage_path}`)
+    logger.info('Uploaded file', { path: cloud_storage_path })
     
     // Generate public URL for immediate access
     const publicUrl = await getFileUrl(cloud_storage_path)
     
-    console.log(`Generated public URL for immediate preview: ${publicUrl}`)
+    logger.info('Generated public URL', { url: publicUrl })
     
     return NextResponse.json({
       success: true,
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
       message: 'File uploaded successfully'
     })
   } catch (error: any) {
-    console.error('Upload error:', error)
+    logger.error('Upload error', { error: error?.message })
     
     // Provide more detailed error messages
     let errorMessage = 'Failed to upload file'
