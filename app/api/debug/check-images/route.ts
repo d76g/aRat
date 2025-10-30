@@ -1,8 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { downloadFile } from '@/lib/s3'
-import { getBucketConfig } from '@/lib/aws-config'
+import { getFileUrl, fileExists } from '@/lib/local-storage'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,60 +23,45 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const bucketConfig = getBucketConfig()
+    const uploadDir = process.env.UPLOAD_DIR || '/var/www/prieelo/uploads'
+    const baseUrl = process.env.BASE_URL || 'https://prieelo.com'
     
-    // Test each image key
+    // Test each image path
     const results = []
     for (const phase of phases) {
-      for (const imageKey of phase.images) {
+      for (const imagePath of phase.images) {
         try {
-          console.log(`Testing image key: ${imageKey}`)
+          console.log(`Testing image path: ${imagePath}`)
           
-          // Try to generate signed URL
-          const signedUrl = await downloadFile(imageKey)
+          // Check if file exists and generate public URL
+          const exists = await fileExists(imagePath)
+          const publicUrl = await getFileUrl(imagePath)
           
           results.push({
             phaseId: phase.id,
-            originalKey: imageKey,
-            signedUrlPreview: signedUrl.substring(0, 150) + '...',
-            status: 'success'
+            originalPath: imagePath,
+            publicUrl,
+            fileExists: exists,
+            status: exists ? 'success' : 'file_missing'
           })
         } catch (error: any) {
-          console.error(`Failed to generate URL for key: ${imageKey}`, error)
+          console.error(`Failed to process path: ${imagePath}`, error)
           
-          // Try with folder prefix if not already included
-          try {
-            const keyWithPrefix = imageKey.startsWith(bucketConfig.folderPrefix) 
-              ? imageKey 
-              : `${bucketConfig.folderPrefix}${imageKey}`
-            
-            console.log(`Retrying with key: ${keyWithPrefix}`)
-            const signedUrl = await downloadFile(keyWithPrefix)
-            
-            results.push({
-              phaseId: phase.id,
-              originalKey: imageKey,
-              correctedKey: keyWithPrefix,
-              signedUrlPreview: signedUrl.substring(0, 150) + '...',
-              status: 'success_with_correction'
-            })
-          } catch (retryError: any) {
-            results.push({
-              phaseId: phase.id,
-              originalKey: imageKey,
-              error: retryError?.message || 'Unknown error',
-              status: 'failed'
-            })
-          }
+          results.push({
+            phaseId: phase.id,
+            originalPath: imagePath,
+            error: error?.message || 'Unknown error',
+            status: 'failed'
+          })
         }
       }
     }
 
     return NextResponse.json({
       success: true,
-      bucketConfig: {
-        bucketName: bucketConfig.bucketName,
-        folderPrefix: bucketConfig.folderPrefix
+      storageConfig: {
+        uploadDir,
+        baseUrl
       },
       totalPhases: phases.length,
       results

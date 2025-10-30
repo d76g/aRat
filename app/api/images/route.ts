@@ -1,28 +1,28 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getSignedImageUrls } from '@/lib/image-utils'
+import { getLocalImageUrls } from '@/lib/image-utils'
 
 export async function POST(request: NextRequest) {
   try {
-    const { s3Keys } = await request.json()
+    const { s3Keys: imagePaths } = await request.json()
     
-    if (!s3Keys || !Array.isArray(s3Keys)) {
+    if (!imagePaths || !Array.isArray(imagePaths)) {
       return NextResponse.json(
-        { message: 'Invalid s3Keys provided' },
+        { message: 'Invalid image paths provided' },
         { status: 400 }
       )
     }
 
-    const signedUrls = await getSignedImageUrls(s3Keys)
+    const publicUrls = await getLocalImageUrls(imagePaths)
     
     return NextResponse.json({
       success: true,
-      urls: signedUrls
+      urls: publicUrls
     })
   } catch (error) {
-    console.error('Error generating signed URLs:', error)
+    console.error('Error generating public URLs:', error)
     return NextResponse.json(
-      { message: 'Failed to generate signed URLs' },
+      { message: 'Failed to generate public URLs' },
       { status: 500 }
     )
   }

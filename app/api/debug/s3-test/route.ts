@@ -1,39 +1,43 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { downloadFile } from '@/lib/s3'
-import { getBucketConfig } from '@/lib/aws-config'
+import { getFileUrl, fileExists } from '@/lib/local-storage'
 
 export async function GET(request: NextRequest) {
   try {
-    const bucketConfig = getBucketConfig()
+    const uploadDir = process.env.UPLOAD_DIR || '/var/www/prieelo/uploads'
+    const baseUrl = process.env.BASE_URL || 'https://prieelo.com'
     
-    // Test with a dummy S3 key
-    const testKey = 'uploads/test-image.jpg'
+    // Test with a dummy local path
+    const testPath = '2024/10/test-image.jpg'
     
-    console.log('Testing S3 configuration...')
-    console.log('Bucket Name:', bucketConfig.bucketName)
-    console.log('Folder Prefix:', bucketConfig.folderPrefix)
-    console.log('Test Key:', testKey)
+    console.log('Testing local storage configuration...')
+    console.log('Upload Directory:', uploadDir)
+    console.log('Base URL:', baseUrl)
+    console.log('Test Path:', testPath)
     
     try {
-      const signedUrl = await downloadFile(testKey)
-      console.log('Generated signed URL:', signedUrl)
+      const publicUrl = await getFileUrl(testPath)
+      const exists = await fileExists(testPath)
+      
+      console.log('Generated public URL:', publicUrl)
+      console.log('File exists:', exists)
       
       return NextResponse.json({
         success: true,
-        bucketName: bucketConfig.bucketName,
-        folderPrefix: bucketConfig.folderPrefix,
-        testKey,
-        signedUrl: signedUrl.substring(0, 100) + '...',
-        message: 'S3 configuration appears to be working'
+        uploadDir,
+        baseUrl,
+        testPath,
+        publicUrl,
+        fileExists: exists,
+        message: 'Local storage configuration appears to be working'
       })
-    } catch (s3Error: any) {
-      console.error('S3 Error:', s3Error)
+    } catch (storageError: any) {
+      console.error('Storage Error:', storageError)
       return NextResponse.json({
         success: false,
-        error: 'S3 configuration issue',
-        details: s3Error?.message || 'Unknown S3 error',
-        bucketName: bucketConfig.bucketName
+        error: 'Local storage configuration issue',
+        details: storageError?.message || 'Unknown storage error',
+        uploadDir
       }, { status: 500 })
     }
   } catch (error: any) {
