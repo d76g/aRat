@@ -47,13 +47,20 @@ export default function SignInPage() {
         redirect: false,
       })
 
+      console.log('Sign-in result:', result) // Debug log
+
       if (result?.error) {
-        setError('Invalid email or password')
-      } else {
+        console.error('Sign-in error:', result.error)
+        setError(result.error || 'Invalid email or password')
+      } else if (result?.ok) {
         toast.success('Welcome back!')
-        router.replace('/')
+        // Force a page refresh to ensure session is loaded
+        window.location.href = '/'
+      } else {
+        setError('Sign-in failed. Please try again.')
       }
     } catch (error) {
+      console.error('Sign-in exception:', error)
       setError('Something went wrong')
     } finally {
       setLoading(false)
