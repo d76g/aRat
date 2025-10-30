@@ -65,7 +65,7 @@ export function LocalImage({
     
     // Generate URL directly without server-side calls
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://prieelo.com'
-    const publicUrl = `${baseUrl}/api/uploads/${src}`
+    const publicUrl = `${baseUrl}/uploads/${src}`
     
     console.log(`[LocalImage] Generated public URL: ${publicUrl}`)
     setImageUrl(publicUrl)

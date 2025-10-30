@@ -57,8 +57,8 @@ export async function getFileUrl(relativePath: string): Promise<string> {
     return relativePath
   }
   
-  // Return public URL for the file
-  return `${BASE_URL}/api/uploads/${relativePath}`
+  // Return public URL for the file (served directly by Nginx)
+  return `${BASE_URL}/uploads/${relativePath}`
 }
 
 export async function deleteFile(relativePath: string): Promise<void> {
