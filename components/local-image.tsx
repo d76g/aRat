@@ -39,8 +39,22 @@ export function LocalImage({
     setLoading(true)
     setError(false)
     
-    // If it's already a full URL, use it directly
+    // If it's already a full URL, try to use it directly unless it's a broken S3 URL
     if (src.startsWith('http')) {
+      try {
+        const u = new URL(src)
+        const host = u.host || ''
+        // Handle legacy/broken S3 URLs where bucket/region envs were undefined
+        if (host.includes('undefined.s3')) {
+          const rel = u.pathname.replace(/^\//, '')
+          const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://prieelo.com'
+          const fallbackUrl = `${baseUrl}/api/uploads/${rel}`
+          setImageUrl(fallbackUrl)
+          setLoading(false)
+          return
+        }
+      } catch {}
+
       setImageUrl(src)
       setLoading(false)
       return
