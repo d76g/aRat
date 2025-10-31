@@ -55,7 +55,8 @@ export default function EditPostPage({ params }: EditPostPageProps) {
           title: postData?.title || '',
           description: postData?.description || '',
           images: postData?.images || [],
-          isPublic: postData?.isPublic !== false
+          // Handle both boolean and 't'/'f' string representation from PostgreSQL
+          isPublic: postData?.isPublic === true || postData?.isPublic === 't' || postData?.isPublic !== false
         })
       } else {
         setError('Failed to load post')

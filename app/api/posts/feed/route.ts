@@ -104,16 +104,20 @@ export async function GET(request: NextRequest) {
       })
 
       // Additional safety filter: Ensure no private posts from other users slip through
+      // Helper function to check if a value is true (handles both boolean and 't'/'f' strings)
+      const isTrue = (val: any) => val === true || val === 't'
+      const isFalse = (val: any) => val === false || val === 'f'
+      
       if (isPublic) {
         posts = posts.filter((post: any) => 
-          post.isPublic === true && 
-          post.project?.isPublic === true
+          isTrue(post.isPublic) && 
+          isTrue(post.project?.isPublic)
         )
       } else if (session?.user?.id) {
         // For authenticated users: filter out posts that are private AND not owned by the user
         posts = posts.filter((post: any) => 
           // Either: post and project are both public
-          (post.isPublic === true && post.project?.isPublic === true) ||
+          (isTrue(post.isPublic) && isTrue(post.project?.isPublic)) ||
           // Or: user owns the project
           (post.project?.userId === session.user.id)
         )
@@ -205,16 +209,20 @@ export async function GET(request: NextRequest) {
       })
 
       // Additional safety filter: Ensure no private posts from other users slip through
+      // Helper function to check if a value is true (handles both boolean and 't'/'f' strings)
+      const isTrue = (val: any) => val === true || val === 't'
+      const isFalse = (val: any) => val === false || val === 'f'
+      
       if (isPublic) {
         posts = posts.filter((post: any) => 
-          post.isPublic === true && 
-          post.project?.isPublic === true
+          isTrue(post.isPublic) && 
+          isTrue(post.project?.isPublic)
         )
       } else if (session?.user?.id) {
         // For authenticated users: filter out posts that are private AND not owned by the user
         posts = posts.filter((post: any) => 
           // Either: post and project are both public
-          (post.isPublic === true && post.project?.isPublic === true) ||
+          (isTrue(post.isPublic) && isTrue(post.project?.isPublic)) ||
           // Or: user owns the project
           (post.project?.userId === session.user.id)
         )

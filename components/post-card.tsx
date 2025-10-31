@@ -280,7 +280,7 @@ export function PostCard({
             <Badge variant={post?.phaseType === 'masterpiece' ? 'default' : 'secondary'}>
               {PHASE_LABELS[post?.phaseType ?? 'material']}
             </Badge>
-            {post?.isPublic === false && (
+            {(post?.isPublic === false || (post?.isPublic as any) === 'f') && (
               <Badge variant="outline" className="bg-white/90 text-gray-700">
                 Private
               </Badge>
