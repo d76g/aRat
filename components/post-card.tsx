@@ -280,11 +280,28 @@ export function PostCard({
             <Badge variant={post?.phaseType === 'masterpiece' ? 'default' : 'secondary'}>
               {PHASE_LABELS[post?.phaseType ?? 'material']}
             </Badge>
-            {(post?.isPublic === false || (post?.isPublic as any) === 'f') && (
-              <Badge variant="outline" className="bg-white/90 text-gray-700">
-                Private
-              </Badge>
-            )}
+            {/* Helper to check if post is public (handles both boolean and 't'/'f' string) */}
+            {(() => {
+              const isPublicValue: any = post?.isPublic
+              const isPublic = isPublicValue === true || isPublicValue === 't' || (isPublicValue !== false && isPublicValue !== 'f')
+              const isPrivate = isPublicValue === false || isPublicValue === 'f'
+              
+              if (isPrivate) {
+                return (
+                  <Badge variant="outline" className="bg-white/90 text-gray-700">
+                    Private
+                  </Badge>
+                )
+              }
+              if (isPublic) {
+                return (
+                  <Badge variant="outline" className="bg-white/90 text-green-700 border-green-300">
+                    Public
+                  </Badge>
+                )
+              }
+              return null
+            })()}
           </div>
         </div>
 
@@ -325,21 +342,23 @@ export function PostCard({
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-4">
               {isPublic && !session?.user?.id ? (
-                <div className="flex items-center space-x-4 text-muted-foreground">
-                  <div className="flex items-center">
-                    <Heart className="h-4 w-4 mr-1" />
-                    {likeCount}
-                  </div>
-                  <div className="flex items-center">
-                    <MessageCircle className="h-4 w-4 mr-1" />
-                    {commentCount}
+                <>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center hover:text-red-600 transition-colors">
+                      <Heart className="h-4 w-4 mr-1" />
+                      <span className="font-medium">{likeCount}</span>
+                    </div>
+                    <div className="flex items-center hover:text-blue-600 transition-colors">
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      <span className="font-medium">{commentCount}</span>
+                    </div>
                   </div>
                   <Link href="/auth/signin">
                     <Button variant="outline" size="sm" className="h-8">
                       Sign in to interact
                     </Button>
                   </Link>
-                </div>
+                </>
               ) : (
                 <>
                   <Button
