@@ -31,6 +31,13 @@ export default withAuth(
           return true
         }
         
+        // Allow public access to posts feed and projects feed when public=true
+        if ((req.nextUrl.pathname === '/api/posts/feed' || 
+             req.nextUrl.pathname === '/api/projects/feed') &&
+            req.nextUrl.searchParams.get('public') === 'true') {
+          return true
+        }
+        
         // For protected routes, require valid token
         return !!token
       },
