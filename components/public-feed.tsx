@@ -214,7 +214,6 @@ export function PublicFeed() {
                 }}
                 isPostView={filter === 'all-posts'}
                 isDoubleSize={true}
-                isPublic={true}
               />
             </motion.div>
           ))}
