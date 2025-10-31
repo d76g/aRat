@@ -343,11 +343,11 @@ export function PostCard({
             <div className="flex items-center space-x-4">
               {isPublic && !session?.user?.id ? (
                 <>
-                  <div className="flex items-center hover:text-red-600 transition-colors">
-                    <Heart className="h-4 w-4 mr-1" />
+                  <div className={`flex items-center transition-colors ${likeCount > 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                    <Heart className={`h-4 w-4 mr-1 ${likeCount > 0 ? 'fill-current' : ''}`} />
                     <span className="font-medium">{likeCount}</span>
                   </div>
-                  <div className="flex items-center hover:text-blue-600 transition-colors">
+                  <div className="flex items-center text-gray-600 transition-colors">
                     <MessageCircle className="h-4 w-4 mr-1" />
                     <span className="font-medium">{commentCount}</span>
                   </div>
