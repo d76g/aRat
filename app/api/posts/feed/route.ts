@@ -19,45 +19,41 @@ export async function GET(request: NextRequest) {
 
     if (projectId) {
       // Get posts from a specific project
+      // For public feeds: Only show posts where BOTH post AND project are public
+      // For authenticated users: Show public posts + user's own posts (regardless of privacy)
       const whereConditions = isPublic ? [
         { 
           isPublic: true, 
           project: { 
-            user: {
-              status: 'APPROVED' as const,
-              isApproved: true
-            }
-          }
-        },
-        { 
-          project: { 
             isPublic: true,
             user: {
-              status: 'APPROVED' as const, 
+              status: 'APPROVED' as const,
               isApproved: true
             }
           }
         }
       ] : [
+        // Public posts from public projects
         { 
           isPublic: true, 
           project: { 
+            isPublic: true,
             user: {
               status: 'APPROVED' as const,
               isApproved: true
             }
           }
         },
-        { 
+        // User's own posts (regardless of privacy settings)
+        session?.user?.id ? { 
           project: { 
-            isPublic: true,
+            userId: session.user.id,
             user: {
-              status: 'APPROVED' as const, 
+              status: 'APPROVED' as const,
               isApproved: true
             }
           }
-        },
-        session?.user?.id ? { project: { userId: session.user.id } } : null
+        } : null
       ].filter(Boolean) as any
 
       posts = await prisma.projectPhase.findMany({
@@ -106,8 +102,26 @@ export async function GET(request: NextRequest) {
           createdAt: 'desc'
         }
       })
+
+      // Additional safety filter: Ensure no private posts from other users slip through
+      if (isPublic) {
+        posts = posts.filter((post: any) => 
+          post.isPublic === true && 
+          post.project?.isPublic === true
+        )
+      } else if (session?.user?.id) {
+        // For authenticated users: filter out posts that are private AND not owned by the user
+        posts = posts.filter((post: any) => 
+          // Either: post and project are both public
+          (post.isPublic === true && post.project?.isPublic === true) ||
+          // Or: user owns the project
+          (post.project?.userId === session.user.id)
+        )
+      }
     } else if (filter === 'all-posts') {
       // Get all individual posts
+      // For public feeds: Only show posts where BOTH post AND project are public
+      // For authenticated users: Show public posts + user's own posts (regardless of privacy)
       const whereConditions = isPublic ? [
         { 
           isPublic: true, 
@@ -120,6 +134,7 @@ export async function GET(request: NextRequest) {
           }
         }
       ] : [
+        // Public posts from public projects
         { 
           isPublic: true, 
           project: { 
@@ -130,7 +145,16 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        session?.user?.id ? { project: { userId: session.user.id } } : null
+        // User's own posts (regardless of privacy settings)
+        session?.user?.id ? { 
+          project: { 
+            userId: session.user.id,
+            user: {
+              status: 'APPROVED' as const,
+              isApproved: true
+            }
+          }
+        } : null
       ].filter(Boolean) as any
 
       posts = await prisma.projectPhase.findMany({
@@ -179,6 +203,22 @@ export async function GET(request: NextRequest) {
         },
         take: 50
       })
+
+      // Additional safety filter: Ensure no private posts from other users slip through
+      if (isPublic) {
+        posts = posts.filter((post: any) => 
+          post.isPublic === true && 
+          post.project?.isPublic === true
+        )
+      } else if (session?.user?.id) {
+        // For authenticated users: filter out posts that are private AND not owned by the user
+        posts = posts.filter((post: any) => 
+          // Either: post and project are both public
+          (post.isPublic === true && post.project?.isPublic === true) ||
+          // Or: user owns the project
+          (post.project?.userId === session.user.id)
+        )
+      }
     } else {
       // Get projects with latest post from each
       const projects = await prisma.project.findMany({
