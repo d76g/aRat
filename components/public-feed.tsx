@@ -195,14 +195,14 @@ export function PublicFeed() {
                         if (filter === 'all-posts' && postId) {
                           // Update post likes
                           updatedPost._count = {
-                            ...updatedPost._count,
-                            likes: (updatedPost._count?.likes || 0) + (isLiked ? 1 : -1)
+                            likes: (updatedPost._count?.likes || 0) + (isLiked ? 1 : -1),
+                            comments: updatedPost._count?.comments || 0
                           }
                         } else {
                           // Update project likes
                           updatedPost.project._count = {
-                            ...updatedPost.project._count,
-                            likes: updatedPost.project._count.likes + (isLiked ? 1 : -1)
+                            likes: updatedPost.project._count.likes + (isLiked ? 1 : -1),
+                            comments: updatedPost.project._count.comments || 0
                           }
                         }
                         return updatedPost
