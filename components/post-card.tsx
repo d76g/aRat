@@ -343,21 +343,14 @@ export function PostCard({
             <div className="flex items-center space-x-4">
               {isPublic && !session?.user?.id ? (
                 <>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center hover:text-red-600 transition-colors">
-                      <Heart className="h-4 w-4 mr-1" />
-                      <span className="font-medium">{likeCount}</span>
-                    </div>
-                    <div className="flex items-center hover:text-blue-600 transition-colors">
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      <span className="font-medium">{commentCount}</span>
-                    </div>
+                  <div className="flex items-center hover:text-red-600 transition-colors">
+                    <Heart className="h-4 w-4 mr-1" />
+                    <span className="font-medium">{likeCount}</span>
                   </div>
-                  <Link href="/auth/signin">
-                    <Button variant="outline" size="sm" className="h-8">
-                      Sign in to interact
-                    </Button>
-                  </Link>
+                  <div className="flex items-center hover:text-blue-600 transition-colors">
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    <span className="font-medium">{commentCount}</span>
+                  </div>
                 </>
               ) : (
                 <>
@@ -402,21 +395,31 @@ export function PostCard({
             </div>
 
             <div className="flex items-center space-x-2">
-              {isOwner && !isPublic && (
-                <Link href={`/projects/${post?.project?.id}/edit-post/${post?.id}`}>
-                  <Button variant="ghost" size="sm" className="h-8 px-2 hover:text-blue-600">
-                    <Edit3 className="h-4 w-4" />
+              {isPublic && !session?.user?.id ? (
+                <Link href="/auth/signin">
+                  <Button variant="outline" size="sm" className="h-8">
+                    Sign in to interact
                   </Button>
                 </Link>
+              ) : (
+                <>
+                  {isOwner && (
+                    <Link href={`/projects/${post?.project?.id}/edit-post/${post?.id}`}>
+                      <Button variant="ghost" size="sm" className="h-8 px-2 hover:text-blue-600">
+                        <Edit3 className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleShare}
+                    className="h-8 px-2 hover:text-green-600"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleShare}
-                className="h-8 px-2 hover:text-green-600"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </CardFooter>

@@ -14,23 +14,27 @@ export function Navbar() {
   const { data: session, status } = useSession()
   const { t } = useLanguage()
   const [isAdmin, setIsAdmin] = useState(false)
+  const [avatar, setAvatar] = useState<string | null>(null)
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const fetchUserData = async () => {
       if (session?.user?.id) {
         try {
           const response = await fetch('/api/profile/me')
           if (response.ok) {
             const userData = await response.json()
             setIsAdmin(userData.user?.isAdmin || false)
+            setAvatar(userData.user?.avatar || null)
           }
         } catch (error) {
-          console.error('Failed to check admin status:', error)
+          console.error('Failed to fetch user data:', error)
         }
+      } else {
+        setAvatar(null)
       }
     }
 
-    checkAdminStatus()
+    fetchUserData()
   }, [session])
 
   if (status === 'loading') {
@@ -80,9 +84,9 @@ export function Navbar() {
                   aria-label={t('profile')}
                 >
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={""} alt={session?.user?.name || 'User'} />
+                    <AvatarImage src={avatar || ''} alt={session?.user?.name || 'User'} />
                     <AvatarFallback>
-                      {session?.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      {session?.user?.name?.charAt(0)?.toUpperCase() || (session?.user as any)?.username?.charAt(0)?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
