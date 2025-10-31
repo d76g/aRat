@@ -186,6 +186,7 @@ export function PublicFeed() {
             >
               <PostCard
                 post={post}
+                isPublic={true}
                 onLike={(projectId, postId, isLiked) => {
                   // Update the post in the local state to reflect the like change
                   setPosts(prevPosts => 
