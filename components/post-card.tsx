@@ -78,6 +78,7 @@ export function PostCard({
   const { data: session } = useSession()
   const router = useRouter()
   const [showComments, setShowComments] = useState(false)
+  
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [isCommenting, setIsCommenting] = useState(false)
@@ -283,8 +284,9 @@ export function PostCard({
             {/* Helper to check if post is public (handles both boolean and 't'/'f' string) */}
             {(() => {
               const isPublicValue: any = post?.isPublic
-              const isPublic = isPublicValue === true || isPublicValue === 't' || (isPublicValue !== false && isPublicValue !== 'f')
+              const isPublic = isPublicValue === true || isPublicValue === 't'
               const isPrivate = isPublicValue === false || isPublicValue === 'f'
+              
               
               if (isPrivate) {
                 return (
