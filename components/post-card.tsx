@@ -3,6 +3,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ProjectPhase } from '@/lib/types'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -75,6 +76,7 @@ export function PostCard({
   isPublic = false 
 }: PostCardProps) {
   const { data: session } = useSession()
+  const router = useRouter()
   const [showComments, setShowComments] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -135,6 +137,11 @@ export function PostCard({
     if (isLiking) return
     
     if (!session?.user?.id) {
+      if (isPublic) {
+        toast.error('Please sign in to like posts')
+        router.push('/auth/signin')
+        return
+      }
       toast.error('Please sign up to like posts')
       return
     }
@@ -172,6 +179,11 @@ export function PostCard({
     if (!newComment.trim() || isCommenting || !isPostView) return
     
     if (!session?.user?.id) {
+      if (isPublic) {
+        toast.error('Please sign in to comment on posts')
+        router.push('/auth/signin')
+        return
+      }
       toast.error('Please sign up to comment on posts')
       return
     }
@@ -346,7 +358,14 @@ export function PostCard({
                       variant="ghost" 
                       size="sm" 
                       className="h-8 px-2 hover:text-blue-600"
-                      onClick={() => setShowComments(!showComments)}
+                      onClick={() => {
+                        if (!session?.user?.id && isPublic) {
+                          toast.error('Please sign in to view comments')
+                          router.push('/auth/signin')
+                          return
+                        }
+                        setShowComments(!showComments)
+                      }}
                     >
                       <MessageCircle className="h-4 w-4 mr-1" />
                       {commentCount}

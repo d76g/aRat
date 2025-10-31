@@ -11,35 +11,57 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const filter = searchParams.get('filter') || 'all-posts'
     const projectId = searchParams.get('projectId')
+    const isPublic = searchParams.get('public') === 'true'
 
     let posts = []
 
     if (projectId) {
       // Get posts from a specific project
+      const whereConditions = isPublic ? [
+        { 
+          isPublic: true, 
+          project: { 
+            user: {
+              status: 'APPROVED' as const,
+              isApproved: true
+            }
+          }
+        },
+        { 
+          project: { 
+            isPublic: true,
+            user: {
+              status: 'APPROVED' as const, 
+              isApproved: true
+            }
+          }
+        }
+      ] : [
+        { 
+          isPublic: true, 
+          project: { 
+            user: {
+              status: 'APPROVED' as const,
+              isApproved: true
+            }
+          }
+        },
+        { 
+          project: { 
+            isPublic: true,
+            user: {
+              status: 'APPROVED' as const, 
+              isApproved: true
+            }
+          }
+        },
+        session?.user?.id ? { project: { userId: session.user.id } } : null
+      ].filter(Boolean) as any
+
       posts = await prisma.projectPhase.findMany({
         where: {
           projectId,
-          OR: [
-            { 
-              isPublic: true, 
-              project: { 
-                user: {
-                  status: 'APPROVED' as const,
-                  isApproved: true
-                }
-              }
-            },
-            { 
-              project: { 
-                isPublic: true,
-                user: {
-                  status: 'APPROVED' as const, 
-                  isApproved: true
-                }
-              }
-            },
-            session?.user?.id ? { project: { userId: session.user.id } } : null
-          ].filter(Boolean) as any
+          OR: whereConditions
         },
         include: {
           project: {
@@ -84,21 +106,34 @@ export async function GET(request: NextRequest) {
       })
     } else if (filter === 'all-posts') {
       // Get all individual posts
+      const whereConditions = isPublic ? [
+        { 
+          isPublic: true, 
+          project: { 
+            isPublic: true,
+            user: {
+              status: 'APPROVED' as const,
+              isApproved: true
+            }
+          }
+        }
+      ] : [
+        { 
+          isPublic: true, 
+          project: { 
+            isPublic: true,
+            user: {
+              status: 'APPROVED' as const,
+              isApproved: true
+            }
+          }
+        },
+        session?.user?.id ? { project: { userId: session.user.id } } : null
+      ].filter(Boolean) as any
+
       posts = await prisma.projectPhase.findMany({
         where: {
-          OR: [
-            { 
-              isPublic: true, 
-              project: { 
-                isPublic: true,
-                user: {
-                  status: 'APPROVED' as const,
-                  isApproved: true
-                }
-              }
-            },
-            session?.user?.id ? { project: { userId: session.user.id } } : null
-          ].filter(Boolean) as any
+          OR: whereConditions
         },
         include: {
           project: {
@@ -146,7 +181,7 @@ export async function GET(request: NextRequest) {
       // Get projects with latest post from each
       const projects = await prisma.project.findMany({
         where: {
-          isPublic: true, // Only show public projects for "all-projects" filter
+          isPublic: true, // Always show only public projects for public feed
           user: {
             status: 'APPROVED' as const,
             isApproved: true

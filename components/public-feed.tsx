@@ -186,7 +186,31 @@ export function PublicFeed() {
             >
               <PostCard
                 post={post}
-                onLike={() => {}} // No like functionality for public users
+                onLike={(projectId, postId, isLiked) => {
+                  // Update the post in the local state to reflect the like change
+                  setPosts(prevPosts => 
+                    prevPosts.map(p => {
+                      if (p.id === post.id) {
+                        const updatedPost = { ...p }
+                        if (filter === 'all-posts' && postId) {
+                          // Update post likes
+                          updatedPost._count = {
+                            ...updatedPost._count,
+                            likes: (updatedPost._count?.likes || 0) + (isLiked ? 1 : -1)
+                          }
+                        } else {
+                          // Update project likes
+                          updatedPost.project._count = {
+                            ...updatedPost.project._count,
+                            likes: updatedPost.project._count.likes + (isLiked ? 1 : -1)
+                          }
+                        }
+                        return updatedPost
+                      }
+                      return p
+                    })
+                  )
+                }}
                 isPostView={filter === 'all-posts'}
                 isDoubleSize={true}
                 isPublic={true}
