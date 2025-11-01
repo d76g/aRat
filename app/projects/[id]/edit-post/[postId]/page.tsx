@@ -16,7 +16,8 @@ import { Loader2, ArrowLeft, Upload, X } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { PHASE_LABELS } from '@/lib/types'
-import Image from 'next/image'
+import { LocalImage } from '@/components/local-image'
+import { resizeImageTo4x3 } from '@/lib/image-utils'
 
 interface EditPostPageProps {
   params: { id: string; postId: string }
@@ -116,8 +117,33 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     setUploading(true)
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
+        // Check file size (15MB limit)
+        if (file.size > 15 * 1024 * 1024) {
+          throw new Error('File too large. Maximum size is 15MB')
+        }
+
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+          throw new Error('Please select an image file')
+        }
+
+        // Resize and crop to 4:3 aspect ratio
+        let processedFile: File | Blob
+        try {
+          const resizedBlob = await resizeImageTo4x3(file)
+          // Create a File object from the blob
+          processedFile = new File([resizedBlob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          })
+        } catch (resizeError) {
+          console.error('Error resizing image:', resizeError)
+          toast.error('Failed to process image. Using original.')
+          processedFile = file // Fallback to original
+        }
+
         const formDataUpload = new FormData()
-        formDataUpload.append('file', file)
+        formDataUpload.append('file', processedFile)
         
         const response = await fetch('/api/upload', {
           method: 'POST',
@@ -129,20 +155,30 @@ export default function EditPostPage({ params }: EditPostPageProps) {
         }
         
         const data = await response.json()
-        return data?.url
+        // Store cloud_storage_path for database, but return both for display
+        return {
+          cloudStoragePath: data?.cloud_storage_path,
+          url: data?.url
+        }
       })
 
-      const imageUrls = await Promise.all(uploadPromises)
+      const results = await Promise.all(uploadPromises)
+      
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images, ...imageUrls.filter(Boolean)]
+        // Store cloud storage paths (for database submission)
+        images: [...prev.images, ...results.map(r => r.cloudStoragePath).filter(Boolean)]
       }))
       
-      toast.success(`${imageUrls.length} image(s) uploaded successfully!`)
-    } catch (error) {
-      toast.error('Failed to upload images')
+      toast.success(`${results.length} image(s) uploaded and processed to 4:3 ratio!`)
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to upload images')
     } finally {
       setUploading(false)
+      // Reset file input
+      if (e.target) {
+        e.target.value = ''
+      }
     }
   }
 
@@ -266,7 +302,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {formData.images.map((image, index) => (
                       <div key={index} className="relative aspect-video bg-muted rounded-lg overflow-hidden">
-                        <Image
+                        <LocalImage
                           src={image}
                           alt={`Upload ${index + 1}`}
                           fill
