@@ -2,15 +2,49 @@
 
 import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-})
+// Create transporter with improved connection handling
+const createTransporter = () => {
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com'
+  const port = parseInt(process.env.SMTP_PORT || '587')
+  const isSecure = port === 465
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: isSecure, // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    },
+    tls: {
+      // Reject unauthorized certificates (set to false only if using self-signed certs)
+      rejectUnauthorized: true
+    },
+    // Connection timeout settings
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000, // 10 seconds
+    socketTimeout: 10000, // 10 seconds
+    // Retry configuration
+    pool: true,
+    maxConnections: 1,
+    maxMessages: 3
+  })
+}
+
+// Create transporter instance
+const transporter = createTransporter()
+
+// Verify connection on startup (non-blocking)
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('SMTP connection verification failed:', error.message)
+      console.error('This may indicate SMTP configuration issues. Emails may not send.')
+    } else {
+      console.log('✅ SMTP server is ready to send emails')
+    }
+  })
+}
 
 export interface EmailOptions {
   to: string
@@ -27,18 +61,44 @@ export async function sendEmail(options: EmailOptions) {
   }
 
   try {
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@prieelo.com',
-      to: options.to,
-      subject: options.subject,
-      html: options.html
-    })
+    // Create a new transporter instance for this request to avoid connection pooling issues
+    const transport = createTransporter()
+    
+    const info = await Promise.race([
+      transport.sendMail({
+        from: process.env.SMTP_FROM || 'noreply@prieelo.com',
+        to: options.to,
+        subject: options.subject,
+        html: options.html
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email send timeout after 15 seconds')), 15000)
+      )
+    ]) as any
 
-    console.log('Email sent: %s', info.messageId)
+    // Close the transport connection
+    transport.close()
+
+    console.log('Email sent successfully: %s', info.messageId)
     return { success: true, messageId: info.messageId }
-  } catch (error) {
-    console.error('Error sending email:', error)
-    return { success: false, error }
+  } catch (error: any) {
+    console.error('Error sending email:', error.message || error)
+    
+    // Provide more specific error messages
+    if (error.code === 'ETIMEDOUT' || error.code === 'ECONNREFUSED') {
+      console.error('SMTP connection failed. Please check:')
+      console.error('  - SMTP_HOST:', process.env.SMTP_HOST)
+      console.error('  - SMTP_PORT:', process.env.SMTP_PORT)
+      console.error('  - SMTP_USER:', process.env.SMTP_USER ? 'Configured' : 'Missing')
+      console.error('  - Network connectivity to SMTP server')
+    } else if (error.message?.includes('Greeting never received')) {
+      console.error('SMTP server did not respond. This could indicate:')
+      console.error('  - Incorrect SMTP_HOST or SMTP_PORT')
+      console.error('  - Firewall blocking the connection')
+      console.error('  - SMTP server is down or unreachable')
+    }
+
+    return { success: false, error: error.message || 'Failed to send email' }
   }
 }
 
