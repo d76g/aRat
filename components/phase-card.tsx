@@ -8,6 +8,7 @@ import { PHASE_LABELS } from '@/lib/types'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Edit3, Calendar } from 'lucide-react'
+import { ReadMore } from '@/components/ui/read-more'
 
 interface PhaseCardProps {
   phase: ProjectPhase
@@ -68,7 +69,7 @@ export function PhaseCard({
         
         {/* Post Description */}
         {phase?.description && (
-          <p className="text-sm text-muted-foreground line-clamp-3">{phase.description}</p>
+          <ReadMore text={phase.description} className="text-sm" />
         )}
 
         {/* Post Meta */}

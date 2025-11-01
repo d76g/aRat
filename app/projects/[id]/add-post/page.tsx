@@ -16,7 +16,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { PHASE_LABELS, PHASE_DESCRIPTIONS } from '@/lib/types'
 import Image from 'next/image'
-import ImageCropper from '@/components/ui/ImageCropper'
+import { resizeImageTo4x3 } from '@/lib/image-utils'
 
 interface AddPostPageProps {
   params: { id: string }
@@ -34,8 +34,6 @@ export default function AddPostPage({ params }: AddPostPageProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const [project, setProject] = useState(null)
-  const [cropperImage, setCropperImage] = useState<string | null>(null)
-  const [originalFile, setOriginalFile] = useState<File | null>(null)
   
   const { data: session } = useSession()
   const router = useRouter()
@@ -94,78 +92,73 @@ export default function AddPostPage({ params }: AddPostPageProps) {
     const files = e.target.files
     if (!files?.length) return
 
-    const file = files[0] // For now, handle one file at a time for cropping
-    
-    // Check file size (15MB limit)
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error('File too large. Maximum size is 15MB')
-      return
-    }
-
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file')
-      return
-    }
-
-    // Create preview URL for cropper
-    const previewUrl = URL.createObjectURL(file)
-    setOriginalFile(file)
-    setCropperImage(previewUrl)
-  }
-
-  const handleCropComplete = async (croppedBlob: Blob, croppedUrl: string) => {
     setUploading(true)
-    setCropperImage(null)
     
     try {
-      // Create a new File object from the cropped blob
-      const croppedFile = new File([croppedBlob], originalFile?.name || 'cropped-image.jpg', {
-        type: 'image/jpeg',
-        lastModified: Date.now(),
+      // Process all selected files
+      const uploadPromises = Array.from(files).map(async (file) => {
+        // Check file size (15MB limit)
+        if (file.size > 15 * 1024 * 1024) {
+          throw new Error('File too large. Maximum size is 15MB')
+        }
+
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+          throw new Error('Please select an image file')
+        }
+
+        // Resize and crop to 4:3 aspect ratio
+        let processedFile: File | Blob
+        try {
+          const resizedBlob = await resizeImageTo4x3(file)
+          // Create a File object from the blob
+          processedFile = new File([resizedBlob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          })
+        } catch (resizeError) {
+          console.error('Error resizing image:', resizeError)
+          toast.error('Failed to process image. Using original.')
+          processedFile = file // Fallback to original
+        }
+
+        const formData = new FormData()
+        formData.append('file', processedFile)
+        
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        })
+        
+        if (!response?.ok) {
+          throw new Error('Failed to upload image')
+        }
+        
+        const data = await response.json()
+        return {
+          cloudStoragePath: data?.cloud_storage_path,
+          url: data?.url
+        }
       })
 
-      const formData = new FormData()
-      formData.append('file', croppedFile)
-      
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-      
-      if (!response?.ok) {
-        throw new Error('Failed to upload image')
-      }
-      
-      const data = await response.json()
+      const results = await Promise.all(uploadPromises)
       
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images, data?.cloud_storage_path],
-        previewUrls: [...prev.previewUrls, data?.url]
+        images: [...prev.images, ...results.map(r => r.cloudStoragePath)],
+        previewUrls: [...prev.previewUrls, ...results.map(r => r.url)]
       }))
       
-      toast.success('Image uploaded successfully!')
-      
-      // Clean up
-      URL.revokeObjectURL(croppedUrl)
-      if (originalFile) {
-        URL.revokeObjectURL(URL.createObjectURL(originalFile))
-      }
-    } catch (error) {
-      toast.error('Failed to upload image')
+      toast.success(`${results.length} image(s) uploaded and processed to 4:3 ratio!`)
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to upload image')
     } finally {
       setUploading(false)
-      setOriginalFile(null)
+      // Reset file input
+      if (e.target) {
+        e.target.value = ''
+      }
     }
-  }
-
-  const handleCropCancel = () => {
-    setCropperImage(null)
-    if (originalFile) {
-      URL.revokeObjectURL(URL.createObjectURL(originalFile))
-    }
-    setOriginalFile(null)
   }
 
   const removeImage = (index: number) => {
@@ -260,6 +253,7 @@ export default function AddPostPage({ params }: AddPostPageProps) {
                       type="file"
                       className="hidden"
                       accept="image/*"
+                      multiple
                       onChange={handleImageUpload}
                       disabled={uploading}
                     />
@@ -346,18 +340,6 @@ export default function AddPostPage({ params }: AddPostPageProps) {
             </div>
           </form>
         </Card>
-
-        {/* Image Cropper Modal */}
-        {cropperImage && (
-          <ImageCropper
-            src={cropperImage}
-            onCropComplete={handleCropComplete}
-            onCancel={handleCropCancel}
-            aspectRatio={undefined} // Allow free cropping
-            minWidth={100}
-            minHeight={100}
-          />
-        )}
       </div>
     </div>
   )

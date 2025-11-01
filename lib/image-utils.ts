@@ -76,3 +76,96 @@ export function clearImageUrlCache() {
 export function clearImageUrlCacheForPath(path: string) {
   publicUrlCache.delete(path)
 }
+
+/**
+ * Resizes and crops an image file to a 4:3 aspect ratio
+ * This function must be called from the browser (client-side only)
+ * @param file - The image file to process
+ * @param targetWidth - Target width in pixels (default: 1200)
+ * @returns Promise resolving to a Blob with the processed image
+ */
+export async function resizeImageTo4x3(
+  file: File,
+  targetWidth: number = 1200
+): Promise<Blob> {
+  // Ensure we're in a browser environment
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    throw new Error('resizeImageTo4x3 can only be called from the browser')
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'))
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(file)
+
+    img.onload = () => {
+      const targetHeight = Math.round(targetWidth * (3 / 4)) // 4:3 ratio
+      const sourceAspectRatio = img.width / img.height
+      const targetAspectRatio = 4 / 3
+
+      let sourceX = 0
+      let sourceY = 0
+      let sourceWidth = img.width
+      let sourceHeight = img.height
+
+      // Crop the image to fit 4:3 ratio
+      if (sourceAspectRatio > targetAspectRatio) {
+        // Image is wider than 4:3, crop from sides
+        sourceWidth = img.height * (4 / 3)
+        sourceX = (img.width - sourceWidth) / 2
+      } else {
+        // Image is taller than 4:3, crop from top/bottom
+        sourceHeight = img.width * (3 / 4)
+        sourceY = (img.height - sourceHeight) / 2
+      }
+
+      // Set canvas dimensions
+      canvas.width = targetWidth
+      canvas.height = targetHeight
+
+      // Draw and resize the image
+      ctx.drawImage(
+        img,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        targetWidth,
+        targetHeight
+      )
+
+      // Clean up object URL
+      URL.revokeObjectURL(objectUrl)
+
+      // Convert to blob
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob)
+          } else {
+            reject(new Error('Failed to create blob from canvas'))
+          }
+        },
+        'image/jpeg',
+        0.92 // Quality setting for JPEG (0.92 = 92% quality)
+      )
+    }
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Failed to load image'))
+    }
+
+    // Load the image from file
+    img.src = objectUrl
+  })
+}

@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json()
-    const { isPublic } = body
+    const { isPublic, title, description } = body
 
     // Verify project ownership
     const project = await prisma.project.findUnique({
@@ -136,11 +136,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    // Build update data object
+    const updateData: any = {}
+    if (isPublic !== undefined) {
+      updateData.isPublic = isPublic
+    }
+    if (title !== undefined) {
+      updateData.title = title
+    }
+    if (description !== undefined) {
+      updateData.description = description
+    }
+
     const updatedProject = await prisma.project.update({
       where: { id: params.id },
-      data: {
-        isPublic: isPublic !== undefined ? isPublic : project.isPublic,
-      }
+      data: updateData
     })
 
     return NextResponse.json({

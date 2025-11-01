@@ -11,12 +11,15 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Heart, MessageCircle, Share2, ArrowLeft, Lock, Globe, Settings } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Heart, MessageCircle, Share2, ArrowLeft, Lock, Globe, Settings, Edit3, Save, X } from 'lucide-react'
 import { PHASE_LABELS } from '@/lib/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
+import { ReadMore } from '@/components/ui/read-more'
 
 interface ProjectDetailProps {
   project: Project
@@ -31,6 +34,10 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
   const [isLiking, setIsLiking] = useState(false)
   const [isPublic, setIsPublic] = useState(project?.isPublic ?? true)
   const [isUpdatingPrivacy, setIsUpdatingPrivacy] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(project?.title ?? '')
+  const [editDescription, setEditDescription] = useState(project?.description ?? '')
+  const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
 
   const isOwner = project?.userId === currentUserId
@@ -126,6 +133,50 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
     }
   }
 
+  const handleEdit = () => {
+    setIsEditing(true)
+    setEditTitle(project?.title ?? '')
+    setEditDescription(project?.description ?? '')
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditTitle(project?.title ?? '')
+    setEditDescription(project?.description ?? '')
+  }
+
+  const handleSaveEdit = async () => {
+    if (!isOwner || isSaving) return
+
+    setIsSaving(true)
+    try {
+      const response = await fetch(`/api/projects/${project?.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: editTitle.trim() || project?.title,
+          description: editDescription.trim() || project?.description 
+        })
+      })
+
+      if (response?.ok) {
+        const data = await response.json()
+        toast.success('Project updated successfully!')
+        setIsEditing(false)
+        // Refresh the page to show updated data
+        router.refresh()
+      } else {
+        const error = await response.json()
+        toast.error(error?.message || 'Failed to update project')
+      }
+    } catch (error) {
+      console.error('Error updating project:', error)
+      toast.error('Something went wrong')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="space-y-6">
@@ -156,7 +207,31 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
                   </Badge>
                 )}
               </div>
-              <h1 className="text-2xl font-bold">{project?.title}</h1>
+              {isEditing ? (
+                <div className="space-y-2">
+                  <Input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    placeholder="Project title"
+                    className="text-2xl font-bold"
+                    disabled={isSaving}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold">{project?.title}</h1>
+                  {isOwner && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleEdit}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -251,11 +326,47 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
               </div>
             </div>
 
-            {project?.description && (
-              <div>
+            {isEditing ? (
+              <div className="space-y-4">
                 <Separator className="my-4" />
-                <p className="text-muted-foreground">{project.description}</p>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="Project description"
+                    rows={4}
+                    disabled={isSaving}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                    disabled={isSaving}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveEdit}
+                    disabled={isSaving}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    Save
+                  </Button>
+                </div>
               </div>
+            ) : (
+              project?.description && (
+                <div>
+                  <Separator className="my-4" />
+                  <ReadMore text={project.description} />
+                </div>
+              )
             )}
           </CardContent>
         </Card>

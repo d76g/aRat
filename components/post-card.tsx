@@ -18,6 +18,7 @@ import { motion } from 'framer-motion'
 import { PHASE_LABELS } from '@/lib/types'
 import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
+import { ReadMore } from '@/components/ui/read-more'
 
 interface Comment {
   id: string;
@@ -277,33 +278,10 @@ export function PostCard({
             </div>
           )}
           
-          <div className="absolute top-3 right-3 flex gap-2">
+          <div className="absolute top-3 right-3">
             <Badge variant={post?.phaseType === 'masterpiece' ? 'default' : 'secondary'}>
               {PHASE_LABELS[post?.phaseType ?? 'material']}
             </Badge>
-            {/* Helper to check if post is public (handles both boolean and 't'/'f' string) */}
-            {(() => {
-              const isPublicValue: any = post?.isPublic
-              const isPublic = isPublicValue === true || isPublicValue === 't'
-              const isPrivate = isPublicValue === false || isPublicValue === 'f'
-              
-              
-              if (isPrivate) {
-                return (
-                  <Badge variant="outline" className="bg-white/90 text-gray-700">
-                    Private
-                  </Badge>
-                )
-              }
-              if (isPublic) {
-                return (
-                  <Badge variant="outline" className="bg-white/90 text-green-700 border-green-300">
-                    Public
-                  </Badge>
-                )
-              }
-              return null
-            })()}
           </div>
         </div>
 
@@ -334,9 +312,7 @@ export function PostCard({
             </h3>
           )}
           {post?.description && (
-            <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-              {post.description}
-            </p>
+            <ReadMore text={post.description} className="mb-3" />
           )}
         </CardContent>
 

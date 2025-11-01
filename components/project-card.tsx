@@ -14,6 +14,7 @@ import { motion } from 'framer-motion'
 import { PHASE_LABELS } from '@/lib/types'
 import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
+import { ReadMore } from '@/components/ui/read-more'
 
 interface ProjectCardProps {
   project: Project
@@ -144,9 +145,9 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
               {project?.title}
             </h3>
             {project?.description && (
-              <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-                {project.description}
-              </p>
+              <div className="mb-3">
+                <ReadMore text={project.description} />
+              </div>
             )}
           </Link>
         </CardContent>
