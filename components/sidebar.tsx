@@ -49,7 +49,7 @@ export function Sidebar() {
               damping: 25, 
               stiffness: 200 
             }}
-            className="fixed left-0 top-20 h-[calc(100vh-80px)] w-32 bg-background/95 backdrop-blur-sm border-r z-40 overflow-y-auto shadow-lg"
+            className="fixed left-0 top-20 h-[calc(100vh-80px)] w-32 bg-background/95 backdrop-blur-sm z-40 overflow-y-auto shadow-[2px_0_8px_rgba(0,0,0,0.1)]"
           >
             {/* Close Button - Absolutely positioned inside sidebar */}
             <Button
