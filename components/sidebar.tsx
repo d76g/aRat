@@ -19,7 +19,7 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Toggle Button */}
+      {/* Toggle Button - Fixed position */}
       <Button
         onClick={toggle}
         variant="outline"
@@ -37,7 +37,7 @@ export function Sidebar() {
         )}
       </Button>
 
-      {/* Sidebar */}
+      {/* Sidebar - Fixed position */}
       <AnimatePresence mode="wait">
         {isOpen && (
           <motion.aside 
@@ -51,7 +51,18 @@ export function Sidebar() {
             }}
             className="fixed left-0 top-20 h-[calc(100vh-80px)] w-32 bg-background/95 backdrop-blur-sm border-r z-40 overflow-y-auto shadow-lg"
           >
-            <div className="p-3 space-y-3">
+            {/* Close Button - Absolutely positioned inside sidebar */}
+            <Button
+              onClick={toggle}
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 h-6 w-6 p-0 z-50"
+              aria-label="Close sidebar"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="p-3 space-y-3 pt-10">
               <nav className="space-y-1">
                 <Link href="/">
                   <Button 

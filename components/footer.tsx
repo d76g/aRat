@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 
 export function Footer() {
   return (
-    <footer className="bg-[#324426] text-[#f6f8d8] py-16 px-4">
+    <footer className="bg-[#324426] text-[#f6f8d8] py-16 px-4 w-full">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Logo Section */}

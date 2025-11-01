@@ -39,7 +39,7 @@ export function Navbar() {
 
   if (status === 'loading') {
     return (
-      <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto max-w-6xl flex h-20 items-center justify-between px-4">
           <div className="h-6 w-32 bg-muted rounded animate-pulse" />
           <div className="h-8 w-24 bg-muted rounded animate-pulse" />
@@ -49,7 +49,7 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-20">
+    <nav className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-20">
       <div className="container mx-auto max-w-6xl px-4 h-full">
         {session ? (
           // Signed in layout - keep horizontal

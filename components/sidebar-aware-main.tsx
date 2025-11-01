@@ -15,11 +15,12 @@ export function SidebarAwareMain({
 
   return (
     <main className={cn(
-      "transition-all duration-300",
-      session ? "pl-4" : "w-full"
+      "transition-all duration-300 pt-20",
+      session && isOpen ? "pl-4" : "",
+      !session ? "w-full" : ""
     )}>
       <div className={cn(
-        "transition-all duration-300",
+        "transition-all duration-300 w-full",
         session && isOpen ? "lg:ml-32" : "",
         session && !isOpen ? "ml-0" : ""
       )}>
