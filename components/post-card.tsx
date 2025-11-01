@@ -71,7 +71,7 @@ export function PostCard({
   post, 
   onLike, 
   onShare, 
-  showEdit = false, 
+  showEdit = true, 
   isPostView = false,
   isDoubleSize = false,
   isPublic = false 
@@ -381,7 +381,7 @@ export function PostCard({
                 </Link>
               ) : (
                 <>
-                  {isOwner && (
+                  {isOwner && showEdit && (
                     <Link href={`/projects/${post?.project?.id}/edit-post/${post?.id}`}>
                       <Button variant="ghost" size="sm" className="h-8 px-2 hover:text-blue-600">
                         <Edit3 className="h-4 w-4" />

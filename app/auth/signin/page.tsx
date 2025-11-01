@@ -51,7 +51,20 @@ export default function SignInPage() {
 
       if (result?.error) {
         console.error('Sign-in error:', result.error)
-        setError(result.error || 'Invalid email or password')
+        // Map NextAuth error codes to user-friendly messages
+        let errorMessage = 'Invalid email or password'
+        if (result.error === 'CredentialsSignin') {
+          errorMessage = 'Invalid email or password'
+        } else if (result.error.includes('pending approval')) {
+          errorMessage = 'Your account is pending approval. Please check your email for next steps.'
+        } else if (result.error.includes('suspended')) {
+          errorMessage = 'Your account has been suspended. Please contact support.'
+        } else if (result.error.includes('not approved')) {
+          errorMessage = 'Your account is not approved for access.'
+        } else {
+          errorMessage = result.error
+        }
+        setError(errorMessage)
       } else if (result?.ok) {
         toast.success('Welcome back!')
         // Force a page refresh to ensure session is loaded

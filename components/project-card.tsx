@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Heart, MessageCircle, Share2, User } from 'lucide-react'
+import { Heart, MessageCircle, Share2, User, Edit3 } from 'lucide-react'
 import Link from 'next/link'
 import { LocalImage } from '@/components/local-image'
 import { motion } from 'framer-motion'
@@ -32,6 +32,7 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
 
   const currentPhase = project?.phases?.find(phase => phase?.phaseType === project?.currentPhase)
   const mainImage = currentPhase?.images?.[0] ?? project?.phases?.[0]?.images?.[0]
+  const isOwner = project?.userId === session?.user?.id
 
   const handleLike = async () => {
     if (!session?.user?.id || isLiking) return
@@ -174,14 +175,23 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
               </Link>
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleShare}
-              className="h-8 px-2 hover:text-green-600"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              {isOwner && (
+                <Link href={`/projects/${project?.id}`}>
+                  <Button variant="ghost" size="sm" className="h-8 px-2 hover:text-blue-600">
+                    <Edit3 className="h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleShare}
+                className="h-8 px-2 hover:text-green-600"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardFooter>
       </Card>
