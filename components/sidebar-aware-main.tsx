@@ -1,6 +1,7 @@
 
 'use client'
 
+import React from 'react'
 import { useSession } from 'next-auth/react'
 import { useSidebar } from './sidebar-provider'
 import { cn } from '@/lib/utils'
@@ -15,15 +16,10 @@ export function SidebarAwareMain({
 
   return (
     <main className={cn(
-      "transition-all duration-300 pt-20",
-      session && isOpen ? "pl-4" : "",
-      !session ? "w-full" : ""
+      "transition-all duration-300 pt-20 w-full",
+      session && isOpen ? "lg:pl-36" : ""
     )}>
-      <div className={cn(
-        "transition-all duration-300 w-full",
-        session && isOpen ? "lg:ml-32" : "",
-        session && !isOpen ? "ml-0" : ""
-      )}>
+      <div className="w-full">
         {children}
       </div>
     </main>
