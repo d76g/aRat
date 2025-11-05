@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       totalUsers,
       pendingUsers,
       approvedUsers,
+      rejectedUsers,
       suspendedUsers,
       totalProjects,
       totalPosts,
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
       prisma.user.count(),
       prisma.user.count({ where: { status: 'PENDING' } }),
       prisma.user.count({ where: { status: 'APPROVED' } }),
+      prisma.user.count({ where: { status: 'REJECTED' } }),
       prisma.user.count({ where: { status: 'SUSPENDED' } }),
       prisma.project.count(),
       prisma.projectPhase.count(),
@@ -66,6 +68,7 @@ export async function GET(request: NextRequest) {
           total: totalUsers,
           pending: pendingUsers,
           approved: approvedUsers,
+          rejected: rejectedUsers,
           suspended: suspendedUsers,
           recent: recentUsers
         },

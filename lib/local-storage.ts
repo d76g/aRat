@@ -2,7 +2,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import logger from './logger'
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || '/var/www/prieelo/uploads'
+const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads'
 const BASE_URL = process.env.BASE_URL || 'https://prieelo.com'
 
 // Ensure upload directory exists

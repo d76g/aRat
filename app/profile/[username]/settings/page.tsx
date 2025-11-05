@@ -13,7 +13,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { ArrowLeft, Save, Trash2, Upload, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, Save, Trash2, Upload, Eye, EyeOff, Mail, Bell } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import Link from 'next/link'
 import ImageCropper from '@/components/ui/ImageCropper'
 
@@ -29,6 +30,12 @@ interface PasswordData {
   currentPassword: string
   newPassword: string
   confirmPassword: string
+}
+
+interface NotificationPreferences {
+  emailNotificationsEnabled: boolean
+  emailNotificationsInteractions: boolean
+  emailNotificationsNews: boolean
 }
 
 export default function ProfileSettings({ params }: { params: { username: string } }) {
@@ -57,6 +64,11 @@ export default function ProfileSettings({ params }: { params: { username: string
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [cropperImage, setCropperImage] = useState<string | null>(null)
   const [originalFile, setOriginalFile] = useState<File | null>(null)
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>({
+    emailNotificationsEnabled: true,
+    emailNotificationsInteractions: true,
+    emailNotificationsNews: true
+  })
 
   useEffect(() => {
     if (!session?.user) {
@@ -72,6 +84,22 @@ export default function ProfileSettings({ params }: { params: { username: string
     fetchProfileData()
   }, [session, params.username, router])
 
+  const fetchNotificationPreferences = async () => {
+    try {
+      const response = await fetch('/api/profile/notifications')
+      if (response.ok) {
+        const data = await response.json()
+        setNotificationPreferences({
+          emailNotificationsEnabled: data.emailNotificationsEnabled ?? true,
+          emailNotificationsInteractions: data.emailNotificationsInteractions ?? true,
+          emailNotificationsNews: data.emailNotificationsNews ?? true
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching notification preferences:', error)
+    }
+  }
+
   const fetchProfileData = async () => {
     try {
       const response = await fetch('/api/profile/me')
@@ -85,6 +113,18 @@ export default function ProfileSettings({ params }: { params: { username: string
           email: u.email || '',
           avatar: u.avatar || null,
         })
+        
+        // Fetch notification preferences
+        if (u.emailNotificationsEnabled !== undefined) {
+          setNotificationPreferences({
+            emailNotificationsEnabled: u.emailNotificationsEnabled ?? true,
+            emailNotificationsInteractions: u.emailNotificationsInteractions ?? true,
+            emailNotificationsNews: u.emailNotificationsNews ?? true
+          })
+        } else {
+          // Fetch separately if not included in profile
+          fetchNotificationPreferences()
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error)
@@ -232,6 +272,29 @@ export default function ProfileSettings({ params }: { params: { username: string
     } catch (error) {
       console.error('Error deleting account:', error)
       toast.error('Failed to delete account')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleUpdateNotifications = async () => {
+    setSaving(true)
+    try {
+      const response = await fetch('/api/profile/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(notificationPreferences)
+      })
+
+      if (response.ok) {
+        toast.success('Notification preferences updated successfully!')
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to update notification preferences')
+      }
+    } catch (error) {
+      console.error('Error updating notification preferences:', error)
+      toast.error('Failed to update notification preferences')
     } finally {
       setSaving(false)
     }
@@ -421,6 +484,95 @@ export default function ProfileSettings({ params }: { params: { username: string
               disabled={saving || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
             >
               {saving ? 'Changing...' : 'Change Password'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Email Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Email Notifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              {/* Master Toggle */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-0.5">
+                  <Label htmlFor="email-notifications-enabled" className="text-base font-medium">
+                    Enable Email Notifications
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receive email notifications from Prieelo
+                  </p>
+                </div>
+                <Switch
+                  id="email-notifications-enabled"
+                  checked={notificationPreferences.emailNotificationsEnabled}
+                  onCheckedChange={(checked) => {
+                    setNotificationPreferences(prev => ({
+                      ...prev,
+                      emailNotificationsEnabled: checked
+                    }))
+                  }}
+                />
+              </div>
+
+              {/* Interactions Toggle */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-0.5">
+                  <Label htmlFor="email-notifications-interactions" className="text-base font-medium">
+                    Interactions
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Get notified when someone likes or comments on your posts
+                  </p>
+                </div>
+                <Switch
+                  id="email-notifications-interactions"
+                  checked={notificationPreferences.emailNotificationsInteractions && notificationPreferences.emailNotificationsEnabled}
+                  onCheckedChange={(checked) => {
+                    setNotificationPreferences(prev => ({
+                      ...prev,
+                      emailNotificationsInteractions: checked
+                    }))
+                  }}
+                  disabled={!notificationPreferences.emailNotificationsEnabled}
+                />
+              </div>
+
+              {/* News Toggle */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-0.5">
+                  <Label htmlFor="email-notifications-news" className="text-base font-medium">
+                    News & Updates
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receive news and updates from Prieelo
+                  </p>
+                </div>
+                <Switch
+                  id="email-notifications-news"
+                  checked={notificationPreferences.emailNotificationsNews && notificationPreferences.emailNotificationsEnabled}
+                  onCheckedChange={(checked) => {
+                    setNotificationPreferences(prev => ({
+                      ...prev,
+                      emailNotificationsNews: checked
+                    }))
+                  }}
+                  disabled={!notificationPreferences.emailNotificationsEnabled}
+                />
+              </div>
+            </div>
+
+            <Button 
+              onClick={handleUpdateNotifications} 
+              disabled={saving}
+            >
+              <Bell className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Notification Preferences'}
             </Button>
           </CardContent>
         </Card>

@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth-config'
 import { prisma } from '@/lib/db'
+import { sendPostLikeNotification } from '@/lib/notification-email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,6 +62,11 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           postId: postId
         }
+      })
+      
+      // Send email notification (don't await - fire and forget)
+      sendPostLikeNotification(postId, session.user.id).catch(err => {
+        console.error('Failed to send post like notification:', err)
       })
     }
 

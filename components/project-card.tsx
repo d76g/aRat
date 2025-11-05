@@ -161,10 +161,10 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
                 size="sm"
                 onClick={handleLike}
                 disabled={!session?.user?.id || isLiking}
-                className={`h-8 px-2 ${isLiked ? 'text-red-600 hover:text-red-700' : 'hover:text-red-600'}`}
+                className="h-8 px-2 group hover:bg-transparent"
               >
-                <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-                {likeCount}
+                <Heart className={`h-4 w-4 mr-1 transition-colors ${isLiked ? 'fill-red-600 text-red-600' : 'group-hover:fill-red-600 group-hover:text-red-600'}`} />
+                <span className="text-foreground group-hover:text-foreground">{likeCount}</span>
               </Button>
               
               <Link href={`/projects/${project?.id}`}>

@@ -13,13 +13,17 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Heart, MessageCircle, Share2, ArrowLeft, Lock, Globe, Settings, Edit3, Save, X } from 'lucide-react'
+import { Heart, MessageCircle, Share2, ArrowLeft, Lock, Globe, Settings, Edit3, Save, X, Trash2, Flag } from 'lucide-react'
 import { PHASE_LABELS } from '@/lib/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import { ReadMore } from '@/components/ui/read-more'
+import Swal from 'sweetalert2'
+import 'sweetalert2/dist/sweetalert2.min.css'
+import { useLanguage } from '@/components/language-provider'
+import { ReportDialog } from '@/components/report-dialog'
 
 interface ProjectDetailProps {
   project: Project
@@ -27,6 +31,7 @@ interface ProjectDetailProps {
 }
 
 export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
+  const { t } = useLanguage()
   const [isLiked, setIsLiked] = useState(
     project?.likes?.some(like => like?.userId === currentUserId) ?? false
   )
@@ -38,6 +43,10 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
   const [editTitle, setEditTitle] = useState(project?.title ?? '')
   const [editDescription, setEditDescription] = useState(project?.description ?? '')
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [reportDialogOpen, setReportDialogOpen] = useState(false)
+  const [reportEntityId, setReportEntityId] = useState<string>('')
+  const [reportEntityType, setReportEntityType] = useState<'post' | 'comment'>('comment')
   const router = useRouter()
 
   const isOwner = project?.userId === currentUserId
@@ -177,6 +186,82 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
     }
   }
 
+  const handleDelete = async () => {
+    if (!isOwner || isDeleting) return
+
+    const result = await Swal.fire({
+      title: t('areYouSure'),
+      text: t('deleteProjectWarning').replace('{title}', project?.title || ''),
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: t('yesDeleteIt'),
+      cancelButtonText: t('cancel'),
+      reverseButtons: true,
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'swal2-confirm-custom',
+        cancelButton: 'swal2-cancel-custom'
+      }
+    })
+
+    if (!result.isConfirmed) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/projects/${project?.id}`, {
+        method: 'DELETE'
+      })
+
+      if (response?.ok) {
+        await Swal.fire({
+          title: t('deleted'),
+          text: t('projectDeleted'),
+          icon: 'success',
+          confirmButtonColor: '#059669',
+          confirmButtonText: t('ok'),
+          buttonsStyling: true,
+          customClass: {
+            confirmButton: 'swal2-confirm-success'
+          }
+        })
+        // Redirect to home page after deletion
+        router.push('/')
+      } else {
+        const error = await response.json()
+        await Swal.fire({
+          title: t('error'),
+          text: error?.message || t('failedToDeleteProject'),
+          icon: 'error',
+          confirmButtonColor: '#dc2626',
+          confirmButtonText: t('ok'),
+          buttonsStyling: true,
+          customClass: {
+            confirmButton: 'swal2-confirm-custom'
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      await Swal.fire({
+        title: t('error'),
+        text: t('somethingWentWrong'),
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: t('ok'),
+        buttonsStyling: true,
+        customClass: {
+          confirmButton: 'swal2-confirm-custom'
+        }
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="space-y-6">
@@ -235,26 +320,39 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
             </div>
           </div>
 
-          {/* Privacy Toggle for Project Owners */}
+          {/* Privacy Toggle and Delete for Project Owners */}
           {isOwner && (
             <Card className="p-4">
-              <div className="flex items-center space-x-3">
-                <Settings className="h-4 w-4 text-muted-foreground" />
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="privacy-toggle" className="text-sm font-medium">
-                    {isPublic ? 'Public' : 'Private'}
-                  </Label>
-                  <Switch
-                    id="privacy-toggle"
-                    checked={isPublic}
-                    onCheckedChange={handlePrivacyToggle}
-                    disabled={isUpdatingPrivacy}
-                    className="data-[state=checked]:bg-green-600"
-                  />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <Settings className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="privacy-toggle" className="text-sm font-medium">
+                      {isPublic ? 'Public' : 'Private'}
+                    </Label>
+                    <Switch
+                      id="privacy-toggle"
+                      checked={isPublic}
+                      onCheckedChange={handlePrivacyToggle}
+                      disabled={isUpdatingPrivacy}
+                      className="data-[state=checked]:bg-green-600"
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {isPublic ? 'Visible to everyone' : 'Only visible to you'}
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {isPublic ? 'Visible to everyone' : 'Only visible to you'}
-                </span>
+                
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isDeleting}
+                  onClick={handleDelete}
+                  className="ml-auto"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {isDeleting ? t('deleting') : t('deleteProject')}
+                </Button>
               </div>
             </Card>
           )}
@@ -293,16 +391,16 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
                   size="sm"
                   onClick={handleLike}
                   disabled={!currentUserId || isLiking}
-                  className={isLiked ? 'text-red-600 hover:text-red-700' : 'hover:text-red-600'}
+                  className="group hover:bg-transparent"
                 >
-                  <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-                  {likeCount}
+                  <Heart className={`h-4 w-4 mr-1 transition-colors ${isLiked ? 'fill-red-600 text-red-600' : 'group-hover:fill-red-600 group-hover:text-red-600'}`} />
+                  <span className="text-foreground group-hover:text-foreground">{likeCount}</span>
                 </Button>
                 
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="hover:text-blue-600"
+                  className="hover:text-green-600 hover:bg-green-50"
                   onClick={() => {
                     // Scroll to comments section
                     const commentsSection = document.getElementById('comments-section');
@@ -319,7 +417,7 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleShare}
-                  className="hover:text-green-600"
+                  className="hover:text-green-600 hover:bg-green-50"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
@@ -532,16 +630,33 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <Link
-                          href={`/profile/${comment?.user?.username}`}
-                          className="font-medium text-sm hover:underline"
-                        >
-                          @{comment?.user?.username}
-                        </Link>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(comment?.createdAt ?? Date.now()).toLocaleDateString()}
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Link
+                            href={`/profile/${comment?.user?.username}`}
+                            className="font-medium text-sm hover:underline"
+                          >
+                            @{comment?.user?.username}
+                          </Link>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(comment?.createdAt ?? Date.now()).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {currentUserId && comment?.user?.id !== currentUserId && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setReportEntityId(comment?.id || '')
+                              setReportEntityType('comment')
+                              setReportDialogOpen(true)
+                            }}
+                            className="h-6 px-2 hover:text-green-600 hover:bg-green-50"
+                            title="Report this comment"
+                          >
+                            <Flag className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                       <p className="text-sm mt-1">{comment?.content}</p>
                     </div>
@@ -555,6 +670,13 @@ export function ProjectDetail({ project, currentUserId }: ProjectDetailProps) {
             )}
           </CardContent>
         </Card>
+
+        <ReportDialog
+          open={reportDialogOpen}
+          onOpenChange={setReportDialogOpen}
+          entityType={reportEntityType}
+          entityId={reportEntityId}
+        />
       </div>
     </div>
   )

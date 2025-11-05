@@ -54,7 +54,8 @@ export function Navbar() {
         {session ? (
           // Signed in layout - keep horizontal
           <div className="flex h-full items-center justify-between">
-            <Link href="/" className="flex flex-col items-center">
+            <Link href="/" className={`relative inline-block ${isAdmin ? 'hidden md:block' : ''}`}>
+              <span className="absolute -top-2 left-0 text-[10px] font-medium text-white bg-red-500 rounded-full px-2 py-0.5 z-10">BETA</span>
               <img src="/prieelo-logo.png" alt="Prieelo" className="h-[2.8rem] w-auto" />
             </Link>
 
@@ -107,7 +108,8 @@ export function Navbar() {
         ) : (
           // Signed out layout - horizontal with same logo size, mobile responsive
           <div className="flex h-full items-center justify-between">
-            <Link href="/" className="flex flex-col items-center">
+            <Link href="/" className="relative inline-block">
+              <span className="absolute -top-2 left-0 text-[10px] font-medium text-white bg-red-500 rounded-full px-2 py-0.5 z-10">BETA</span>
               <img src="/prieelo-logo.png" alt="Prieelo" className="h-[2.8rem] w-auto" />
             </Link>
 

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
 import { prisma } from '@/lib/db'
+import { sendUserApprovalNotification, sendUserRejectionNotification } from '@/lib/notification-email'
 
 export async function PUT(
   request: NextRequest,
@@ -52,6 +53,17 @@ export async function PUT(
         adminId: session.user.id
       }
     })
+
+    // Send email notification based on status (don't await - fire and forget)
+    if (status === 'APPROVED') {
+      sendUserApprovalNotification(params.id).catch(err => {
+        console.error('Failed to send approval notification:', err)
+      })
+    } else if (status === 'REJECTED') {
+      sendUserRejectionNotification(params.id, reason).catch(err => {
+        console.error('Failed to send rejection notification:', err)
+      })
+    }
 
     return NextResponse.json({
       success: true,

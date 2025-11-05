@@ -148,6 +148,30 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       updateData.description = description
     }
 
+    // If project is being made private, all posts must become private
+    if (isPublic !== undefined && isPublic === false && project.isPublic === true) {
+      // Use a transaction to update project and all its posts
+      await prisma.$transaction([
+        prisma.project.update({
+          where: { id: params.id },
+          data: updateData
+        }),
+        prisma.projectPhase.updateMany({
+          where: { projectId: params.id },
+          data: { isPublic: false }
+        })
+      ])
+      
+      const updatedProject = await prisma.project.findUnique({
+        where: { id: params.id }
+      })
+
+      return NextResponse.json({
+        success: true,
+        project: updatedProject
+      })
+    }
+
     const updatedProject = await prisma.project.update({
       where: { id: params.id },
       data: updateData
@@ -161,6 +185,67 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     console.error('Error updating project:', error)
     return NextResponse.json(
       { message: 'Failed to update project' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { message: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
+    if (!params?.id) {
+      return NextResponse.json(
+        { message: 'Project ID required' },
+        { status: 400 }
+      )
+    }
+
+    // Verify project ownership
+    const project = await prisma.project.findUnique({
+      where: { id: params.id },
+      select: { userId: true }
+    })
+
+    if (!project) {
+      return NextResponse.json(
+        { message: 'Project not found' },
+        { status: 404 }
+      )
+    }
+
+    if (project.userId !== session.user.id) {
+      return NextResponse.json(
+        { message: 'Not authorized to delete this project' },
+        { status: 403 }
+      )
+    }
+
+    // Delete the project (cascade deletes will handle related data)
+    // This will automatically delete:
+    // - ProjectPhase (posts)
+    // - Comment (comments on project and posts)
+    // - Like (likes on project)
+    // - PostLike (likes on posts)
+    await prisma.project.delete({
+      where: { id: params.id }
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Project deleted successfully'
+    })
+  } catch (error) {
+    console.error('Error deleting project:', error)
+    return NextResponse.json(
+      { message: 'Failed to delete project' },
       { status: 500 }
     )
   }

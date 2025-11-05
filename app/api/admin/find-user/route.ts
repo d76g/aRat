@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
 import { prisma } from '@/lib/db'
+import { sendUserApprovalNotification } from '@/lib/notification-email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,6 +74,11 @@ export async function POST(request: NextRequest) {
           reason: `Auto-approved by admin search for "${username}"`,
           adminId: session.user.id
         }
+      })
+
+      // Send email notification (don't await - fire and forget)
+      sendUserApprovalNotification(userToApprove.id).catch(err => {
+        console.error('Failed to send approval notification:', err)
       })
 
       return NextResponse.json({

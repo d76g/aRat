@@ -167,3 +167,62 @@ html, body {
     @apply bg-background text-foreground;
   }
 }
+
+/* SweetAlert2 Button Customization */
+.swal2-confirm-custom {
+  background-color: #dc2626 !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.625rem 1.5rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  transition: background-color 0.2s !important;
+}
+
+.swal2-confirm-custom:hover {
+  background-color: #b91c1c !important;
+}
+
+.swal2-cancel-custom {
+  background-color: #6b7280 !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.625rem 1.5rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  transition: background-color 0.2s !important;
+}
+
+.swal2-cancel-custom:hover {
+  background-color: #4b5563 !important;
+}
+
+.swal2-confirm-success {
+  background-color: #059669 !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.625rem 1.5rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  transition: background-color 0.2s !important;
+}
+
+.swal2-confirm-success:hover {
+  background-color: #047857 !important;
+}
+
+/* Ensure SweetAlert2 buttons are clickable */
+.swal2-popup .swal2-confirm,
+.swal2-popup .swal2-cancel {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  z-index: 1 !important;
+}
+
+.swal2-container {
+  z-index: 9999 !important;
+}
+
+.swal2-popup {
+  z-index: 10000 !important;
+}

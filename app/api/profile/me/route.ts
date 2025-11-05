@@ -26,6 +26,9 @@ export async function GET(request: NextRequest) {
         avatar: true,
         isAdmin: true,
         status: true,
+        emailNotificationsEnabled: true,
+        emailNotificationsInteractions: true,
+        emailNotificationsNews: true,
         createdAt: true
       }
     })

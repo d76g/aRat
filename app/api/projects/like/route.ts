@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
 import { prisma } from '@/lib/db'
+import { sendProjectLikeNotification } from '@/lib/notification-email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,6 +51,12 @@ export async function POST(request: NextRequest) {
           projectId
         }
       })
+      
+      // Send email notification (don't await - fire and forget)
+      sendProjectLikeNotification(projectId, session.user.id).catch(err => {
+        console.error('Failed to send project like notification:', err)
+      })
+      
       return NextResponse.json({ liked: true })
     }
   } catch (error) {

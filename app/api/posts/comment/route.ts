@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth-config'
 import { prisma } from '@/lib/db'
+import { sendCommentNotification } from '@/lib/notification-email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,6 +57,11 @@ export async function POST(request: NextRequest) {
           }
         }
       }
+    })
+
+    // Send email notification (don't await - fire and forget)
+    sendCommentNotification(comment.id, session.user.id).catch(err => {
+      console.error('Failed to send comment notification:', err)
     })
 
     return NextResponse.json({ comment })

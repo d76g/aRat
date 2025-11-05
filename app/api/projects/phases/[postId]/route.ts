@@ -101,7 +101,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       where: { id: params.postId },
       include: {
         project: {
-          select: { userId: true }
+          select: { userId: true, isPublic: true, id: true }
         }
       }
     })
@@ -127,9 +127,38 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       images: validatedData.images
     }
 
-    // Only update isPublic if it was provided
+    // Handle privacy constraints:
+    // - If project is private, post must remain private (cannot make post public)
+    // - If post is being made public, project must become public
     if (validatedData.isPublic !== undefined) {
-      updateData.isPublic = validatedData.isPublic
+      if (validatedData.isPublic === true && !post.project.isPublic) {
+        // Post is being made public, but project is private - make project public
+        await prisma.$transaction([
+          prisma.project.update({
+            where: { id: post.project.id },
+            data: { isPublic: true }
+          }),
+          prisma.projectPhase.update({
+            where: { id: params.postId },
+            data: { ...updateData, isPublic: true }
+          })
+        ])
+        
+        const updatedPost = await prisma.projectPhase.findUnique({
+          where: { id: params.postId }
+        })
+
+        return NextResponse.json({
+          success: true,
+          post: updatedPost
+        })
+      } else if (validatedData.isPublic === false || post.project.isPublic) {
+        // Post can be private or public if project is public
+        updateData.isPublic = validatedData.isPublic
+      } else {
+        // Project is private, so post must remain private
+        updateData.isPublic = false
+      }
     }
 
     const updatedPost = await prisma.projectPhase.update({

@@ -41,6 +41,7 @@ interface Stats {
     total: number
     pending: number
     approved: number
+    rejected: number
     suspended: number
     recent: number
   }
@@ -84,6 +85,9 @@ export default function AdminDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedContent, setSelectedContent] = useState<any>(null)
   const [contentDialogOpen, setContentDialogOpen] = useState(false)
+  const [reports, setReports] = useState<any[]>([])
+  const [reportStatus, setReportStatus] = useState('all')
+  const [reportsLoading, setReportsLoading] = useState(false)
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -199,6 +203,65 @@ export default function AdminDashboard() {
     })
   }
 
+  const loadReports = async () => {
+    try {
+      setReportsLoading(true)
+      const params = new URLSearchParams()
+      if (reportStatus !== 'all') {
+        params.append('status', reportStatus)
+      }
+      
+      const response = await fetch(`/api/admin/reports?${params.toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        setReports(data.reports || [])
+      } else {
+        toast.error('Failed to load reports')
+      }
+    } catch (error) {
+      console.error('Error loading reports:', error)
+      toast.error('Failed to load reports')
+    } finally {
+      setReportsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (session && session.user) {
+      loadReports()
+    }
+  }, [reportStatus, session])
+
+  const handleReportStatusChange = async (reportId: string, newStatus: string) => {
+    try {
+      const response = await fetch('/api/admin/reports', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId, status: newStatus })
+      })
+
+      if (response.ok) {
+        toast.success(`Report ${newStatus.toLowerCase()} successfully`)
+        loadReports()
+      } else {
+        const error = await response.json()
+        toast.error(error.message || 'Failed to update report')
+      }
+    } catch (error) {
+      toast.error('Failed to update report')
+    }
+  }
+
+  const getReportStatusBadge = (status: string) => {
+    const colors = {
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      REVIEWED: 'bg-blue-100 text-blue-800',
+      DISMISSED: 'bg-gray-100 text-gray-800',
+      RESOLVED: 'bg-green-100 text-green-800'
+    }
+    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'
+  }
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-prieelo-cream to-white flex items-center justify-center">
@@ -260,7 +323,7 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.users.pending}</div>
                   <p className="text-xs text-muted-foreground">
-                    Awaiting approval
+                    Awaiting approval • {stats.users.rejected} rejected
                   </p>
                 </CardContent>
               </Card>
@@ -295,9 +358,10 @@ export default function AdminDashboard() {
         </motion.div>
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="content">Content Monitoring</TabsTrigger>
+            <TabsTrigger value="reports">Reported Content</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-6">
@@ -976,6 +1040,149 @@ export default function AdminDashboard() {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reports" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Reported Content</CardTitle>
+                  <Select value={reportStatus} onValueChange={setReportStatus}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Reports</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="REVIEWED">Reviewed</SelectItem>
+                      <SelectItem value="DISMISSED">Dismissed</SelectItem>
+                      <SelectItem value="RESOLVED">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {reportsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : reports.length === 0 ? (
+                  <p className="text-center py-8 text-muted-foreground">No reports to review</p>
+                ) : (
+                  <div className="space-y-4">
+                    {reports.map((report) => (
+                      <Card key={report.id} className="border-l-4 border-l-orange-500">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Badge className={getReportStatusBadge(report.status)}>
+                                  {report.status}
+                                </Badge>
+                                <Badge variant="outline">
+                                  {report.entityType === 'post' ? 'Post' : 'Comment'}
+                                </Badge>
+                                <span className="text-sm text-muted-foreground">
+                                  Reported {formatDate(report.createdAt)}
+                                </span>
+                              </div>
+                              
+                              <div>
+                                <p className="text-sm font-medium">Reason: {report.reason}</p>
+                                {report.description && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {report.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="text-sm">
+                                <p>
+                                  <span className="font-medium">Reporter:</span>{' '}
+                                  @{report.reporter.username}
+                                </p>
+                                {report.contentAuthor && (
+                                  <p>
+                                    <span className="font-medium">Content Author:</span>{' '}
+                                    @{report.contentAuthor.username}
+                                  </p>
+                                )}
+                              </div>
+
+                              {report.content && (
+                                <div className="mt-3 p-3 bg-muted rounded-lg">
+                                  <p className="text-xs font-medium mb-1">Reported Content:</p>
+                                  {report.entityType === 'post' ? (
+                                    <div>
+                                      {report.content.title && (
+                                        <p className="text-sm font-medium">{report.content.title}</p>
+                                      )}
+                                      {report.content.description && (
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                          {report.content.description}
+                                        </p>
+                                      )}
+                                      {report.content.project && (
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                          Project: {report.content.project.title}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div>
+                                      <p className="text-sm">{report.content.content}</p>
+                                      {report.content.project && (
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                          Project: {report.content.project.title}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {report.reviewedAt && report.reviewer && (
+                                <p className="text-xs text-muted-foreground">
+                                  Reviewed by @{report.reviewer.username} on{' '}
+                                  {formatDate(report.reviewedAt)}
+                                </p>
+                              )}
+                            </div>
+
+                            {report.status === 'PENDING' && (
+                              <div className="flex flex-col gap-2 ml-4">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleReportStatusChange(report.id, 'REVIEWED')}
+                                >
+                                  Mark Reviewed
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleReportStatusChange(report.id, 'DISMISSED')}
+                                >
+                                  Dismiss
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600"
+                                  onClick={() => handleReportStatusChange(report.id, 'RESOLVED')}
+                                >
+                                  Resolve
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

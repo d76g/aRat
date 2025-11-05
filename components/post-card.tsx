@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Heart, MessageCircle, Share2, User, Edit3, Send } from 'lucide-react'
+import { Heart, MessageCircle, Share2, User, Edit3, Send, Flag } from 'lucide-react'
 import Link from 'next/link'
 import { LocalImage } from '@/components/local-image'
 import { motion } from 'framer-motion'
@@ -19,6 +19,7 @@ import { PHASE_LABELS } from '@/lib/types'
 import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 import { ReadMore } from '@/components/ui/read-more'
+import { ReportDialog } from '@/components/report-dialog'
 
 interface Comment {
   id: string;
@@ -78,6 +79,9 @@ export function PostCard({
 }: PostCardProps) {
   const { data: session } = useSession()
   const router = useRouter()
+  const [reportDialogOpen, setReportDialogOpen] = useState(false)
+  const [commentReportDialogOpen, setCommentReportDialogOpen] = useState(false)
+  const [selectedCommentId, setSelectedCommentId] = useState<string>('')
   const [showComments, setShowComments] = useState(false)
   
   const [comments, setComments] = useState<Comment[]>([])
@@ -321,8 +325,8 @@ export function PostCard({
             <div className="flex items-center space-x-4">
               {isPublic && !session?.user?.id ? (
                 <>
-                  <div className={`flex items-center transition-colors ${likeCount > 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                    <Heart className={`h-4 w-4 mr-1 ${likeCount > 0 ? 'fill-current' : ''}`} />
+                  <div className="flex items-center text-gray-600 group">
+                    <Heart className={`h-4 w-4 mr-1 transition-colors ${likeCount > 0 ? 'fill-red-600 text-red-600' : 'group-hover:fill-red-600 group-hover:text-red-600'}`} />
                     <span className="font-medium">{likeCount}</span>
                   </div>
                   <div className="flex items-center text-gray-600 transition-colors">
@@ -337,17 +341,17 @@ export function PostCard({
                     size="sm"
                     onClick={handleLike}
                     disabled={!session?.user?.id || isLiking}
-                    className={`h-8 px-2 ${isLiked ? 'text-red-600 hover:text-red-700' : 'hover:text-red-600'}`}
+                    className="h-8 px-2 group hover:bg-transparent"
                   >
-                    <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-                    {likeCount}
+                    <Heart className={`h-4 w-4 mr-1 transition-colors ${isLiked ? 'fill-red-600 text-red-600' : 'group-hover:fill-red-600 group-hover:text-red-600'}`} />
+                    <span className="text-foreground group-hover:text-foreground">{likeCount}</span>
                   </Button>
                   
                   {isPostView ? (
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-8 px-2 hover:text-blue-600"
+                      className="h-8 px-2 hover:text-green-600 hover:bg-green-50"
                       onClick={() => {
                         if (!session?.user?.id && isPublic) {
                           toast.error('Please sign in to view comments')
@@ -388,11 +392,22 @@ export function PostCard({
                       </Button>
                     </Link>
                   )}
+                  {!isOwner && session?.user?.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setReportDialogOpen(true)}
+                      className="h-8 px-2 hover:text-green-600 hover:bg-green-50"
+                      title="Report this post"
+                    >
+                      <Flag className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleShare}
-                    className="h-8 px-2 hover:text-green-600"
+                    className="h-8 px-2 hover:text-green-600 hover:bg-green-50"
                   >
                     <Share2 className="h-4 w-4" />
                   </Button>
@@ -464,16 +479,32 @@ export function PostCard({
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <Link
-                            href={`/profile/${comment.user.username}`}
-                            className="font-medium text-xs hover:underline"
-                          >
-                            @{comment.user.username}
-                          </Link>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(comment.createdAt).toLocaleDateString()}
-                          </span>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center space-x-2">
+                            <Link
+                              href={`/profile/${comment.user.username}`}
+                              className="font-medium text-xs hover:underline"
+                            >
+                              @{comment.user.username}
+                            </Link>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(comment.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {session?.user?.id && comment.user.id !== session.user.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedCommentId(comment.id)
+                                setCommentReportDialogOpen(true)
+                              }}
+                              className="h-6 px-2 hover:text-green-600 hover:bg-green-50"
+                              title="Report this comment"
+                            >
+                              <Flag className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                         <p className="text-sm">{comment.content}</p>
                       </div>
@@ -489,6 +520,19 @@ export function PostCard({
           </div>
         )}
       </Card>
+
+      <ReportDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        entityType="post"
+        entityId={post?.id || ''}
+      />
+      <ReportDialog
+        open={commentReportDialogOpen}
+        onOpenChange={setCommentReportDialogOpen}
+        entityType="comment"
+        entityId={selectedCommentId}
+      />
     </motion.div>
   )
 }

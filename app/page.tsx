@@ -9,9 +9,11 @@ export default async function HomePage() {
   const session = await getServerSession(authOptions)
 
   return (
-    <>
-      {!session?.user ? <PublicFeed /> : <HomeFeed />}
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-1">
+        {!session?.user ? <PublicFeed /> : <HomeFeed />}
+      </div>
       <Footer />
-    </>
+    </div>
   )
 }

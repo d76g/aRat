@@ -5,7 +5,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prisma:generate": "node -r dotenv/config node_modules/.bin/prisma generate",
+    "prisma:migrate:dev": "node -r dotenv/config node_modules/.bin/prisma migrate dev",
+    "prisma:migrate:deploy": "node -r dotenv/config node_modules/.bin/prisma migrate deploy",
+    "prisma:seed": "node -r dotenv/config node_modules/.bin/prisma db seed",
+    "prisma:studio": "node -r dotenv/config node_modules/.bin/prisma studio",
+    "prisma:push": "node -r dotenv/config node_modules/.bin/prisma db push"
   },
   "prisma": {
     "seed": "tsx --require dotenv/config ./scripts/seed.ts"
@@ -31,7 +37,6 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "winston": "^3.13.0",
     "@floating-ui/react": "0.26.0",
     "@headlessui/react": "1.7.18",
     "@hookform/resolvers": "3.9.0",
@@ -114,10 +119,12 @@
     "react-use": "17.6.0",
     "recharts": "2.15.3",
     "sonner": "1.5.0",
+    "sweetalert2": "^11.26.3",
     "swr": "2.2.4",
     "tailwind-scrollbar-hide": "1.1.7",
     "vaul": "0.9.9",
     "webpack": "5.99.5",
+    "winston": "^3.13.0",
     "yup": "1.3.0",
     "zod": "3.23.8",
     "zustand": "5.0.3"

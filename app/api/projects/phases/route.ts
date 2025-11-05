@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
       select: { 
         userId: true, 
         currentPhase: true,
+        isPublic: true,
         phases: {
           select: { phaseType: true }
         }
@@ -98,6 +99,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Ensure post privacy matches project privacy
+    // If project is private, post must be private
+    // If project is public, post can be public or private
+    const postIsPublic = project.isPublic ? validatedData.isPublic : false
+
     // Create the new phase post
     const newPhase = await prisma.projectPhase.create({
       data: {
@@ -106,7 +112,7 @@ export async function POST(request: NextRequest) {
         title: validatedData.title || null,
         description: validatedData.description || null,
         images: validatedData.images,
-        isPublic: validatedData.isPublic
+        isPublic: postIsPublic
       }
     })
 

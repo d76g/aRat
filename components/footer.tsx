@@ -4,10 +4,19 @@ import Image from 'next/image'
 import { MapPin, Mail } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { useSession } from 'next-auth/react'
+import { useSidebar } from './sidebar-provider'
+import { cn } from '@/lib/utils'
 
 export function Footer() {
+  const { data: session } = useSession()
+  const { isOpen } = useSidebar()
+
   return (
-    <footer className="bg-[#324426] text-[#f6f8d8] py-16 px-4 w-full">
+    <footer className={cn(
+      "bg-[#324426] text-[#f6f8d8] py-16 px-4 w-full",
+      session && isOpen ? "lg:-ml-36 lg:w-[calc(100%+9rem)]" : ""
+    )}>
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Logo Section */}
@@ -17,7 +26,10 @@ export function Footer() {
                 src="/prieelo-logo.png"
                 alt="Prieelo Logo"
                 fill
-                className="object-contain brightness-0 invert"
+                className="object-contain"
+                style={{
+                  filter: 'brightness(0) saturate(100%) invert(97%) sepia(6%) saturate(691%) hue-rotate(18deg) brightness(98%) contrast(96%)'
+                }}
                 loading="lazy"
               />
             </div>
@@ -64,11 +76,18 @@ export function Footer() {
               <p>Launch: November 3, 2025</p>
               <p>Platform: voordekunst.nl</p>
               <p>Fulfillment: December 2025</p>
-              <Badge 
-                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors border-transparent bg-[#ed4924] hover:bg-[#ed4924]/90 text-[#f6f8d8] border-0"
+              <a 
+                href="https://www.voordekunst.nl/projecten/20029-prieelo-a-platform-turning-scrap-to-snap"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
               >
-                Live Campaign
-              </Badge>
+                <Badge 
+                  className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors border-transparent bg-[#ed4924] hover:bg-[#ed4924]/90 text-[#f6f8d8] border-0 cursor-pointer"
+                >
+                  Live Campaign
+                </Badge>
+              </a>
             </div>
           </div>
         </div>
