@@ -13,6 +13,9 @@ import { authOptions } from '@/lib/auth-config'
 export const metadata = {
   title: 'Prieelo - Scrap to Snap',
   description: 'Transform waste into wonderful - Share your DIY transformation journey',
+  icons: {
+    icon: '/prieelo-mark.png',
+  },
 }
 
 export default async function RootLayout({

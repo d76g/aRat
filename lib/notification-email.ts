@@ -208,7 +208,15 @@ export async function sendCommentNotification(
     if (!comment) return
 
     // Determine recipient (project owner or post owner)
-    let recipient: typeof comment.project.user | null = null
+    type Recipient = {
+      id: string
+      email: string
+      firstName: string | null
+      username: string
+      emailNotificationsEnabled: boolean
+      emailNotificationsInteractions: boolean
+    }
+    let recipient: Recipient | null = null
     let contentType: 'project' | 'post' = 'project'
     let contentTitle = ''
     let contentUrl = ''
