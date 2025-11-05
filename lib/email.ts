@@ -8,10 +8,28 @@ const createTransporter = () => {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com'
   const port = parseInt(process.env.SMTP_PORT || '587')
   
-  // Use SMTP_SECURE if explicitly set, otherwise determine from port
-  const isSecure = process.env.SMTP_SECURE 
-    ? process.env.SMTP_SECURE === 'true' 
-    : port === 465
+  // Port 465 uses SSL/TLS immediately (secure: true)
+  // Port 587 uses STARTTLS (secure: false, but requires TLS upgrade)
+  // IMPORTANT: Port 587 MUST use secure: false (STARTTLS), ignore SMTP_SECURE if port is 587
+  // Port 465 defaults to secure: true, but can be overridden with SMTP_SECURE
+  let isSecure: boolean
+  if (port === 587) {
+    // Port 587 always uses STARTTLS (secure: false)
+    isSecure = false
+    if (process.env.SMTP_SECURE === 'true') {
+      console.warn('⚠️  Warning: SMTP_SECURE=true is set but port 587 requires STARTTLS (secure: false). Ignoring SMTP_SECURE setting.')
+    }
+  } else if (port === 465) {
+    // Port 465 defaults to SSL/TLS (secure: true), but can be overridden
+    isSecure = process.env.SMTP_SECURE 
+      ? process.env.SMTP_SECURE === 'true' 
+      : true
+  } else {
+    // For other ports, use SMTP_SECURE if set, otherwise default to false
+    isSecure = process.env.SMTP_SECURE 
+      ? process.env.SMTP_SECURE === 'true' 
+      : false
+  }
 
   // Use SMTP_REJECT_UNAUTHORIZED from .env, default to true
   const rejectUnauthorized = process.env.SMTP_REJECT_UNAUTHORIZED 
@@ -37,18 +55,22 @@ const createTransporter = () => {
     ? parseInt(process.env.SMTP_MAX_MESSAGES) 
     : 3
 
+  // TLS configuration
+  // For port 587, nodemailer automatically uses STARTTLS when secure: false
+  // For port 465, secure: true uses SSL/TLS immediately
+  const tlsConfig: any = {
+    rejectUnauthorized
+  }
+
   return nodemailer.createTransport({
     host,
     port,
-    secure: isSecure, // true for 465 or if SMTP_SECURE=true
+    secure: isSecure, // true for 465 (SSL), false for 587 (STARTTLS - auto-upgraded)
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
     },
-    tls: {
-      // Reject unauthorized certificates (from .env or default true)
-      rejectUnauthorized
-    },
+    tls: tlsConfig,
     // Connection timeout settings (from .env or defaults)
     connectionTimeout,
     greetingTimeout,
@@ -69,6 +91,20 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     if (error) {
       console.error('SMTP connection verification failed:', error.message)
       console.error('This may indicate SMTP configuration issues. Emails may not send.')
+      console.error('Current SMTP configuration:')
+      console.error(`  - SMTP_HOST: ${process.env.SMTP_HOST || 'smtp.gmail.com'}`)
+      console.error(`  - SMTP_PORT: ${process.env.SMTP_PORT || '587'}`)
+      console.error(`  - SMTP_SECURE: ${process.env.SMTP_SECURE || 'auto (false for port 587, true for port 465)'}`)
+      console.error(`  - Using secure connection: ${parseInt(process.env.SMTP_PORT || '587') === 465 || process.env.SMTP_SECURE === 'true'}`)
+      if (error.message.includes('wrong version number') || error.message.includes('ssl3_get_record')) {
+        console.error('')
+        console.error('⚠️  SSL/TLS Configuration Issue Detected:')
+        console.error('   This error typically means:')
+        console.error('   - Port 587 requires STARTTLS (secure: false)')
+        console.error('   - Port 465 requires SSL/TLS (secure: true)')
+        console.error('   - If using port 587, ensure SMTP_SECURE is NOT set to "true" in .env')
+        console.error('   - If using port 465, ensure SMTP_SECURE is set to "true" or not set (auto-detected)')
+      }
     } else {
       console.log('✅ SMTP server is ready to send emails')
     }
