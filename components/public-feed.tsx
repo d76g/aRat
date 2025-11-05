@@ -125,6 +125,36 @@ export function PublicFeed() {
           </div>
         </div>
 
+        {/* Campaign Banner */}
+        <div className="bg-gradient-to-r from-[#ed4924]/10 to-[#ed4924]/5 border-l-4 border-[#ed4924] rounded-lg p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-lg sm:text-xl font-bold text-[#ed4924] mb-2">
+                🎄 Support Our Live Campaign
+              </h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3">
+                Help us launch Prieelo and give remakers a platform against greenwashing. Every contribution brings us closer to Christmas 2025 launch!
+              </p>
+              <p className="text-xs text-gray-600">
+                Launch: November 3, 2025 • Platform: voordekunst.nl • Fulfillment: December 2025
+              </p>
+            </div>
+            <a 
+              href="https://www.voordekunst.nl/projecten/20029-prieelo-a-platform-turning-scrap-to-snap"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0"
+            >
+              <Button 
+                className="bg-[#ed4924] hover:bg-[#ed4924]/90 text-white w-full sm:w-auto"
+                size="lg"
+              >
+                Support Now →
+              </Button>
+            </a>
+          </div>
+        </div>
+
         {error && (
           <div className="text-center py-8">
             <p className="text-red-600 mb-4">{error}</p>

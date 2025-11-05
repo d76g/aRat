@@ -125,6 +125,16 @@ export function Navbar() {
                   <Button size="sm" className="text-xs sm:text-sm">{t('signUp')}</Button>
                 </Link>
               </div>
+              <Link 
+                href="https://www.voordekunst.nl/projecten/20029-prieelo-a-platform-turning-scrap-to-snap"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:block"
+              >
+                <Button size="sm" className="bg-[#ed4924] hover:bg-[#ed4924]/90 text-white text-xs sm:text-sm">
+                  🎄 Support Campaign
+                </Button>
+              </Link>
               <Link href="https://form.typeform.com/to/tS5qFUcs" target="_blank" className="hidden sm:block">
                 <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm">
                   Become a Remaker
