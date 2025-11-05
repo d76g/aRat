@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
-  seed: 'tsx --require dotenv/config scripts/seed.ts',
-  // Ensure environment variables are loaded
-  envFile: '.env'
+  earlyAccess: true,
+  // Seed configuration is in package.json under "prisma.seed"
+  // Environment variables are loaded via dotenv/config import above
 })
