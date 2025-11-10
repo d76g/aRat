@@ -95,7 +95,7 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
                 src={mainImage}
                 alt={project?.title ?? 'Project image'}
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 cacheBust={new Date(project?.updatedAt ?? Date.now()).getTime()}
               />
