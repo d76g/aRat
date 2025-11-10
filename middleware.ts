@@ -23,19 +23,36 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
+        const pathname = req.nextUrl.pathname
+        const method = req.method
+        const segments = pathname.split('/').filter(Boolean)
+
         // Allow access to public routes
-        if (req.nextUrl.pathname.startsWith('/auth') || 
-            req.nextUrl.pathname === '/' ||
-            req.nextUrl.pathname.startsWith('/api/auth') ||
-            req.nextUrl.pathname.startsWith('/api/signup')) {
+        if (pathname.startsWith('/auth') || 
+            pathname === '/' ||
+            pathname.startsWith('/api/auth') ||
+            pathname.startsWith('/api/signup')) {
           return true
         }
         
         // Allow public access to posts feed and projects feed when public=true
-        if ((req.nextUrl.pathname === '/api/posts/feed' || 
-             req.nextUrl.pathname === '/api/projects/feed') &&
+        if ((pathname === '/api/posts/feed' || 
+             pathname === '/api/projects/feed') &&
             req.nextUrl.searchParams.get('public') === 'true') {
           return true
+        }
+
+        // Allow signed-out users to view public profile and project pages (GET only)
+        if (method === 'GET') {
+          const firstSegment = segments[0]
+          const segmentCount = segments.length
+
+          const isPublicProjectPage = firstSegment === 'projects' && segmentCount === 2
+          const isPublicProfilePage = firstSegment === 'profile' && segmentCount === 2
+
+          if (isPublicProjectPage || isPublicProfilePage) {
+            return true
+          }
         }
         
         // For protected routes, require valid token

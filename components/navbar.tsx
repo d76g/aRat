@@ -5,14 +5,16 @@ import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { LogOut, Shield } from 'lucide-react'
+import { LogOut, Menu } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useLanguage } from '@/components/language-provider'
 import { LanguageSelector } from '@/components/language-selector'
+import { useSidebar } from '@/components/sidebar-provider'
 
 export function Navbar() {
   const { data: session, status } = useSession()
   const { t } = useLanguage()
+  const { toggle } = useSidebar()
   const [isAdmin, setIsAdmin] = useState(false)
   const [avatar, setAvatar] = useState<string | null>(null)
 
@@ -54,28 +56,28 @@ export function Navbar() {
         {session ? (
           // Signed in layout - keep horizontal
           <div className="flex h-full items-center justify-between">
-            <Link href="/" className={`relative inline-block ${isAdmin ? 'hidden md:block' : ''}`}>
-              <span className="absolute -top-2 left-0 text-[10px] font-medium text-white bg-red-500 rounded-full px-2 py-0.5 z-10">BETA</span>
-              <img src="/prieelo-logo.png" alt="Prieelo" className="h-[2.8rem] w-auto" />
-            </Link>
+            <div className="flex items-center space-x-3">
+              {/* Hamburger Menu - Mobile & Tablet */}
+              <Button
+                onClick={toggle}
+                variant="ghost"
+                size="icon"
+                className="xl:hidden h-10 w-10"
+                aria-label="Toggle sidebar"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
 
-            <div className="flex items-center space-x-4">
+              <Link href="/" className={`relative inline-block ${isAdmin ? 'hidden xl:block' : ''}`}>
+                <span className="absolute -top-2 left-0 text-[10px] font-medium text-white bg-red-500 rounded-full px-2 py-0.5 z-10">BETA</span>
+                <img src="/prieelo-logo.png" alt="Prieelo" className="h-[2.8rem] w-auto" />
+              </Link>
+            </div>
+
+            {/* Desktop Only - User Controls (Extra large screens only) */}
+            <div className="hidden xl:flex items-center space-x-4">
               {/* Language Selector */}
               <LanguageSelector />
-
-              {/* Admin Link - Only show for admin users */}
-              {isAdmin && (
-                <Link href="/admin">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-sm text-orange-600 hover:text-orange-700"
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    {t('moderationPanel')}
-                  </Button>
-                </Link>
-              )}
 
               {/* Profile Icon - Direct Link */}
               <Link href={`/profile/${(session?.user as any)?.username}`}>

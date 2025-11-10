@@ -5,19 +5,25 @@ import { MapPin, Mail } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { useSession } from 'next-auth/react'
-import { useSidebar } from './sidebar-provider'
+import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 export function Footer() {
   const { data: session } = useSession()
-  const { isOpen } = useSidebar()
-
+  const pathname = usePathname()
+  const isFullWidthPage = pathname?.startsWith('/admin')
+  
   return (
-    <footer className={cn(
-      "bg-[#324426] text-[#f6f8d8] py-16 px-4 w-full",
-      session && isOpen ? "lg:-ml-36 lg:w-[calc(100%+9rem)]" : ""
-    )}>
-      <div className="max-w-6xl mx-auto">
+    <footer 
+      className={cn(
+        "bg-background border-t text-[#324426] py-16 px-6 sm:px-8 w-full mt-auto"
+      )}
+    >
+      <div
+        className={cn(
+          isFullWidthPage ? "w-full" : "max-w-6xl mx-auto"
+        )}
+      >
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Logo Section */}
           <div className="space-y-4">
@@ -28,13 +34,13 @@ export function Footer() {
                 fill
                 className="object-contain"
                 style={{
-                  filter: 'brightness(0) saturate(100%) invert(97%) sepia(6%) saturate(691%) hue-rotate(18deg) brightness(98%) contrast(96%)'
+                  filter: 'brightness(0) saturate(100%) invert(18%) sepia(10%) saturate(1021%) hue-rotate(67deg) brightness(94%) contrast(86%)'
                 }}
                 loading="lazy"
               />
             </div>
             <p className="text-sm text-[#a1c0e5] font-medium">by ARaT.eco B.V.</p>
-            <p className="text-[#f6f8d8]/90 text-sm leading-relaxed">
+            <p className="text-sm leading-relaxed text-[#324426]/80">
               &quot;Scrap to Snap&quot; - Giving remakers a podium against greenwashing through complete transparency.
             </p>
           </div>
@@ -42,11 +48,11 @@ export function Footer() {
           {/* Company Info */}
           <div className="space-y-4">
             <h4 className="font-semibold text-lg text-[#a1c0e5]">Company Info</h4>
-            <div className="space-y-2 text-sm text-[#f6f8d8]/90">
+            <div className="space-y-2 text-sm text-[#324426]">
               <p>ARaT.eco B.V.</p>
               <p>KVK-nummer: 96388056</p>
               <p>Vestigingsnummer: 000061718092</p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-[#324426]">
                 <MapPin className="w-4 h-4" />
                 <span>Netherlands</span>
               </div>
@@ -56,12 +62,12 @@ export function Footer() {
           {/* Contact */}
           <div className="space-y-4">
             <h4 className="font-semibold text-lg text-[#a1c0e5]">Contact</h4>
-            <div className="space-y-2 text-sm text-[#f6f8d8]/90">
+            <div className="space-y-2 text-sm text-[#324426]">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 <a 
                   href="mailto:info@arat.eco" 
-                  className="hover:text-[#f6f8d8] transition-colors"
+                  className="hover:text-[#a1c0e5] transition-colors"
                 >
                   info@arat.eco
                 </a>
@@ -72,7 +78,7 @@ export function Footer() {
           {/* Campaign */}
           <div className="space-y-4">
             <h4 className="font-semibold text-lg text-[#a1c0e5]">Campaign</h4>
-            <div className="space-y-2 text-sm text-[#f6f8d8]/90">
+            <div className="space-y-2 text-sm text-[#324426]">
               <p>Launch: November 3, 2025</p>
               <p>Platform: voordekunst.nl</p>
               <p>Fulfillment: December 2025</p>
@@ -92,10 +98,10 @@ export function Footer() {
           </div>
         </div>
 
-        <Separator className="bg-[#f6f8d8]/20 mb-8" />
+        <Separator className="bg-[#324426]/20 mb-8" />
 
         <div className="text-center space-y-4">
-          <p className="text-[#f6f8d8]/80 text-sm">
+          <p className="text-[#324426]/80 text-sm">
             © 2025 ARaT.eco B.V. All rights reserved. Made with ♻️ for a sustainable future.
           </p>
           <div className="flex justify-center space-x-4 text-xs text-[#a1c0e5]">

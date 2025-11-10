@@ -38,9 +38,9 @@ export default async function RootLayout({
           <SidebarProvider>
             <div className="min-h-screen bg-gradient-to-br from-prieelo-cream via-white to-prieelo-blue/20">
               <Navbar />
-              <ApprovalStatusBanner />
               <Sidebar />
               <SidebarAwareMain>
+                <ApprovalStatusBanner />
                 {children}
               </SidebarAwareMain>
             </div>

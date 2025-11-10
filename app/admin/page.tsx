@@ -274,8 +274,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-prieelo-cream to-white p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-prieelo-cream to-white p-4 sm:p-6">
+      <div className="max-w-5xl mx-auto w-full space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -405,6 +405,7 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto mx-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -607,6 +608,7 @@ export default function AdminDashboard() {
                     )}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -630,6 +632,7 @@ export default function AdminDashboard() {
                 </Button>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto mx-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1040,6 +1043,7 @@ export default function AdminDashboard() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
