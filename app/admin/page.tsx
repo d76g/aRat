@@ -675,7 +675,12 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>
                           {contentType === 'posts' && item.phaseType && (
-                            <Badge variant="outline">{item.phaseType}</Badge>
+                            <Badge variant={
+                              item.phaseType === 'masterpiece' ? 'reveal' :
+                              item.phaseType === 'process' ? 'remake' : 'raw'
+                            }>
+                              {item.phaseType}
+                            </Badge>
                           )}
                           {contentType === 'projects' && (
                             <Badge variant="outline">Project</Badge>
@@ -780,7 +785,15 @@ export default function AdminDashboard() {
                                   {contentType === 'posts' && item.phaseType && (
                                     <div>
                                       <Label className="text-xs text-slate-600">Phase Type</Label>
-                                      <Badge variant="outline" className="mt-1">{item.phaseType}</Badge>
+                                      <Badge 
+                                        variant={
+                                          item.phaseType === 'masterpiece' ? 'reveal' :
+                                          item.phaseType === 'process' ? 'remake' : 'raw'
+                                        }
+                                        className="mt-1"
+                                      >
+                                        {item.phaseType}
+                                      </Badge>
                                     </div>
                                   )}
                                   

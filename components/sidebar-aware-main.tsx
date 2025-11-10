@@ -22,14 +22,14 @@ export function SidebarAwareMain({
       className={cn(
         "w-full transition-all duration-300 pt-20 min-h-screen flex flex-col",
         // DON'T CHANGE THIS - IT'S THE SIDEBAR WIDTH
-        session?.user ? "xl:ml-64" : ""
+        session?.user ? "xl:ml-44" : ""
       )}
     >
       <div className="flex-1 w-full">
         <div
           className={cn(
             // DON'T CHANGE THIS - IT'S THE MAX WIDTH OF THE CONTENT
-            isFullWidthPage ? "mx-auto w-full" : "max-w-6xl mx-auto"
+            isFullWidthPage ? "mx-auto w-full" : "max-w-4xl mx-auto"
           )}
         >
           {children}

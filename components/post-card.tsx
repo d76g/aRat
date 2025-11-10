@@ -242,6 +242,8 @@ export function PostCard({
   }
 
   const aspectRatio = isDoubleSize ? "aspect-[2/1]" : "aspect-[4/3]"
+  const phaseBgColor = post?.phaseType === 'masterpiece' ? 'bg-green-600/20' :
+                       post?.phaseType === 'process' ? 'bg-blue-600/20' : 'bg-red-600/20'
 
   return (
     <motion.div
@@ -253,7 +255,7 @@ export function PostCard({
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
         <div className="relative">
           {mainImage ? (
-            <div className={`relative ${aspectRatio} bg-muted`}>
+            <div className={`relative ${aspectRatio} ${phaseBgColor}`}>
               <LocalImage
                 src={mainImage}
                 alt={post?.title ?? post?.project?.title ?? 'Post image'}
@@ -277,13 +279,16 @@ export function PostCard({
               )}
             </div>
           ) : (
-            <div className={`${aspectRatio} bg-muted flex items-center justify-center`}>
+            <div className={`${aspectRatio} ${phaseBgColor} flex items-center justify-center`}>
               <User className="h-12 w-12 text-muted-foreground" />
             </div>
           )}
           
           <div className="absolute top-3 right-3">
-            <Badge variant={post?.phaseType === 'masterpiece' ? 'default' : 'secondary'}>
+            <Badge variant={
+              post?.phaseType === 'masterpiece' ? 'reveal' :
+              post?.phaseType === 'process' ? 'remake' : 'raw'
+            }>
               {PHASE_LABELS[post?.phaseType ?? 'material']}
             </Badge>
           </div>

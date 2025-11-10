@@ -28,6 +28,8 @@ export function PhaseCard({
   projectTitle
 }: PhaseCardProps) {
   const hasContent = phase && (phase?.images?.length > 0 || phase?.description || phase?.title)
+  const phaseBgColor = phaseType === 'masterpiece' ? 'bg-green-600/20' :
+                       phaseType === 'process' ? 'bg-blue-600/20' : 'bg-red-600/20'
 
   return (
     <Card className={`h-full transition-all duration-300 hover:shadow-lg ${isCompleted ? 'ring-1 ring-green-400 bg-green-50/30' : 'shadow-md'}`}>
@@ -36,7 +38,7 @@ export function PhaseCard({
         {phase?.images && phase.images.length > 0 && (
           <div className="grid grid-cols-1 gap-2">
             {phase.images.slice(0, 1).map((image, index) => (
-              <div key={index} className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+              <div key={index} className={`relative aspect-video ${phaseBgColor} rounded-lg overflow-hidden`}>
                 <Image
                   src={image}
                   alt={`${phaseType} phase image ${index + 1}`}

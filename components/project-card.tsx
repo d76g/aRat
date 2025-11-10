@@ -33,6 +33,8 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
   const currentPhase = project?.phases?.find(phase => phase?.phaseType === project?.currentPhase)
   const mainImage = currentPhase?.images?.[0] ?? project?.phases?.[0]?.images?.[0]
   const isOwner = project?.userId === session?.user?.id
+  const phaseBgColor = project?.currentPhase === 'masterpiece' ? 'bg-green-600/20' :
+                       project?.currentPhase === 'process' ? 'bg-blue-600/20' : 'bg-red-600/20'
 
   const handleLike = async () => {
     if (!session?.user?.id || isLiking) return
@@ -88,7 +90,7 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
         <div className="relative">
           {mainImage ? (
-            <div className="relative aspect-[4/3] bg-muted">
+            <div className={`relative aspect-[4/3] ${phaseBgColor}`}>
               <LocalImage
                 src={mainImage}
                 alt={project?.title ?? 'Project image'}
@@ -105,7 +107,7 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
               </div>
             </div>
           ) : (
-            <div className="aspect-[4/3] bg-muted flex items-center justify-center">
+            <div className={`aspect-[4/3] ${phaseBgColor} flex items-center justify-center`}>
               <User className="h-12 w-12 text-muted-foreground" />
             </div>
           )}
