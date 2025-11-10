@@ -76,7 +76,10 @@ export default function ProfileSettings({ params }: { params: { username: string
       return
     }
 
-    if (session.user.username !== params.username) {
+    // Decode the username in case it contains special characters
+    const decodedUsername = decodeURIComponent(params.username)
+    
+    if (session.user.username !== decodedUsername) {
       router.push(`/profile/${session.user.username}`)
       return
     }

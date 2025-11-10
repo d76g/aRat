@@ -25,10 +25,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     notFound()
   }
 
+  // Decode the username in case it contains special characters
+  const decodedUsername = decodeURIComponent(params.username)
+
   try {
     // Find user by username
     const user = await prisma.user.findUnique({
-      where: { username: params.username },
+      where: { username: decodedUsername },
       include: {
         projects: {
           where: {
