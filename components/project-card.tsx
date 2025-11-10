@@ -33,8 +33,8 @@ export function ProjectCard({ project, onLike, onShare }: ProjectCardProps) {
   const currentPhase = project?.phases?.find(phase => phase?.phaseType === project?.currentPhase)
   const mainImage = currentPhase?.images?.[0] ?? project?.phases?.[0]?.images?.[0]
   const isOwner = project?.userId === session?.user?.id
-  const phaseBgColor = project?.currentPhase === 'masterpiece' ? 'bg-green-600/20' :
-                       project?.currentPhase === 'process' ? 'bg-blue-600/20' : 'bg-red-600/20'
+  const phaseBgColor = project?.currentPhase === 'masterpiece' ? 'bg-[#324426]' :
+                       project?.currentPhase === 'process' ? 'bg-[#a1c0e5]' : 'bg-[#ed4924]'
 
   const handleLike = async () => {
     if (!session?.user?.id || isLiking) return

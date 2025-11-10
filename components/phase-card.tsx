@@ -28,8 +28,8 @@ export function PhaseCard({
   projectTitle
 }: PhaseCardProps) {
   const hasContent = phase && (phase?.images?.length > 0 || phase?.description || phase?.title)
-  const phaseBgColor = phaseType === 'masterpiece' ? 'bg-green-600/20' :
-                       phaseType === 'process' ? 'bg-blue-600/20' : 'bg-red-600/20'
+  const phaseBgColor = phaseType === 'masterpiece' ? 'bg-[#324426]' :
+                       phaseType === 'process' ? 'bg-[#a1c0e5]' : 'bg-[#ed4924]'
 
   return (
     <Card className={`h-full transition-all duration-300 hover:shadow-lg ${isCompleted ? 'ring-1 ring-green-400 bg-green-50/30' : 'shadow-md'}`}>

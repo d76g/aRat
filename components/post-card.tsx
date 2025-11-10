@@ -242,8 +242,8 @@ export function PostCard({
   }
 
   const aspectRatio = isDoubleSize ? "aspect-[2/1]" : "aspect-[4/3]"
-  const phaseBgColor = post?.phaseType === 'masterpiece' ? 'bg-green-600/20' :
-                       post?.phaseType === 'process' ? 'bg-blue-600/20' : 'bg-red-600/20'
+  const phaseBgColor = post?.phaseType === 'masterpiece' ? 'bg-[#324426]' :
+                       post?.phaseType === 'process' ? 'bg-[#a1c0e5]' : 'bg-[#ed4924]'
 
   return (
     <motion.div
