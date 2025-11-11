@@ -14,11 +14,42 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData()
+    const username = formData.get('username') as string
     const firstName = formData.get('firstName') as string
     const lastName = formData.get('lastName') as string  
     const bio = formData.get('bio') as string
     const email = formData.get('email') as string
     const avatarFile = formData.get('avatar') as File | null
+
+    // Validate username format
+    const usernameRegex = /^[a-z0-9._]+$/
+    if (username) {
+      if (!usernameRegex.test(username)) {
+        return NextResponse.json({ 
+          error: 'Username can only contain lowercase letters, numbers, periods (.) and underscores (_)' 
+        }, { status: 400 })
+      }
+
+      if (username.length < 3) {
+        return NextResponse.json({ error: 'Username must be at least 3 characters long' }, { status: 400 })
+      }
+
+      if (username.length > 30) {
+        return NextResponse.json({ error: 'Username must be less than 30 characters' }, { status: 400 })
+      }
+
+      // Check if username is already taken by another user
+      const existingUserWithUsername = await prisma.user.findFirst({
+        where: {
+          username: username,
+          NOT: { id: session.user.id }
+        }
+      })
+      
+      if (existingUserWithUsername) {
+        return NextResponse.json({ error: 'Username is already taken' }, { status: 400 })
+      }
+    }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -61,6 +92,10 @@ export async function POST(request: NextRequest) {
       lastName: lastName || null,
       bio: bio || null,
       email: email
+    }
+
+    if (username) {
+      updateData.username = username
     }
 
     if (avatarUrl) {

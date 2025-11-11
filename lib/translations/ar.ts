@@ -156,6 +156,15 @@ export const ar: TranslationKeys = {
   reachOutEmail: 'تواصل معنا عبر البريد الإلكتروني:',
   settings: 'الإعدادات',
   
+  // Username validation
+  username: 'اسم المستخدم',
+  usernameRequirements: 'يُسمح فقط بالأحرف الصغيرة والأرقام والنقاط (.) والشرطات السفلية (_). 3 أحرف كحد أدنى.',
+  usernameInvalidChars: 'يمكن أن يحتوي اسم المستخدم فقط على أحرف صغيرة وأرقام ونقاط (.) وشرطات سفلية (_)',
+  usernameTooShort: 'يجب أن يتكون اسم المستخدم من 3 أحرف على الأقل',
+  usernameTooLong: 'يجب أن يكون اسم المستخدم أقل من 30 حرفًا',
+  usernameAlreadyTaken: 'اسم المستخدم مستخدم بالفعل',
+  usernameAvailable: 'اسم المستخدم متاح',
+
   // Reporting
   reportContent: 'الإبلاغ عن المحتوى',
   reportPostDescription: 'ساعدنا في الحفاظ على سلامة المجتمع من خلال الإبلاغ عن المنشورات غير المناسبة.',

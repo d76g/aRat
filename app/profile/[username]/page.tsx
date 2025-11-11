@@ -80,6 +80,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     })
 
     if (!user) {
+      // User not found - this is expected behavior, not an error
       notFound()
     }
 
@@ -185,7 +186,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       </div>
     )
   } catch (error) {
-    console.error('Error fetching profile:', error)
-    notFound()
+    // Only log if it's not a NEXT_NOT_FOUND error (which is expected)
+    if (error && typeof error === 'object' && 'digest' in error && error.digest === 'NEXT_NOT_FOUND') {
+      // This is expected - user doesn't exist
+      notFound()
+    } else {
+      // Actual error - log it
+      console.error('Error fetching profile:', error)
+      notFound()
+    }
   }
 }

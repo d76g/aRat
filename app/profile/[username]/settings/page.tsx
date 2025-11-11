@@ -13,12 +13,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { ArrowLeft, Save, Trash2, Upload, Eye, EyeOff, Mail, Bell } from 'lucide-react'
+import { ArrowLeft, Save, Trash2, Upload, Eye, EyeOff, Mail, Bell, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import Link from 'next/link'
 import ImageCropper from '@/components/ui/ImageCropper'
+import { useLanguage } from '@/components/language-provider'
 
 interface ProfileData {
+  username: string
   firstName: string
   lastName: string
   bio: string
@@ -41,9 +43,13 @@ interface NotificationPreferences {
 export default function ProfileSettings({ params }: { params: { username: string } }) {
   const { data: session } = useSession()
   const router = useRouter()
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [usernameError, setUsernameError] = useState<string>('')
+  const [usernameValid, setUsernameValid] = useState<boolean>(false)
   const [profileData, setProfileData] = useState<ProfileData>({
+    username: '',
     firstName: '',
     lastName: '',
     bio: '',
@@ -110,6 +116,7 @@ export default function ProfileSettings({ params }: { params: { username: string
         const data = await response.json()
         const u = data.user || data
         setProfileData({
+          username: u.username || '',
           firstName: u.firstName || '',
           lastName: u.lastName || '',
           bio: u.bio || '',
@@ -183,9 +190,27 @@ export default function ProfileSettings({ params }: { params: { username: string
   }
 
   const handleSaveProfile = async () => {
+    // Validate username format
+    const usernameRegex = /^[a-z0-9._]+$/
+    if (profileData.username && !usernameRegex.test(profileData.username)) {
+      toast.error('Username can only contain lowercase letters, numbers, periods (.) and underscores (_)')
+      return
+    }
+
+    if (profileData.username && profileData.username.length < 3) {
+      toast.error('Username must be at least 3 characters long')
+      return
+    }
+
+    if (profileData.username && profileData.username.length > 30) {
+      toast.error('Username must be less than 30 characters')
+      return
+    }
+
     setSaving(true)
     try {
       const formData = new FormData()
+      formData.append('username', profileData.username)
       formData.append('firstName', profileData.firstName)
       formData.append('lastName', profileData.lastName)
       formData.append('bio', profileData.bio)
@@ -201,10 +226,23 @@ export default function ProfileSettings({ params }: { params: { username: string
       })
 
       if (response.ok) {
+        const updatedUser = await response.json()
         toast.success('Profile updated successfully!')
         setAvatarFile(null)
         setAvatarPreview(null)
-        await fetchProfileData()
+        
+        // Decode the current URL username to compare properly
+        const currentUsername = decodeURIComponent(params.username)
+        
+        // If username changed, redirect to new profile URL and refresh session
+        if (updatedUser.username && updatedUser.username !== currentUsername) {
+          // Use router.replace to update URL without adding to history
+          router.replace(`/profile/${encodeURIComponent(updatedUser.username)}/settings`)
+          // Force a page reload to update the session
+          window.location.href = `/profile/${encodeURIComponent(updatedUser.username)}/settings`
+        } else {
+          await fetchProfileData()
+        }
       } else {
         const error = await response.json()
         toast.error(error.error || 'Failed to update profile')
@@ -363,6 +401,79 @@ export default function ProfileSettings({ params }: { params: { username: string
                   JPG, PNG or GIF. Max size 15MB.
                 </p>
               </div>
+            </div>
+
+            {/* Username */}
+            <div className="space-y-2">
+              <Label htmlFor="username">{t('username')}</Label>
+              <div className="relative">
+                <Input
+                  id="username"
+                  value={profileData.username}
+                  onChange={(e) => {
+                    // Only allow lowercase letters, numbers, periods, and underscores
+                    const value = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, '')
+                    setProfileData(prev => ({ ...prev, username: value }))
+                    
+                    // Real-time validation
+                    const usernameRegex = /^[a-z0-9._]+$/
+                    
+                    if (!value) {
+                      setUsernameError('')
+                      setUsernameValid(false)
+                    } else if (value.length < 3) {
+                      setUsernameError(t('usernameTooShort'))
+                      setUsernameValid(false)
+                    } else if (value.length > 30) {
+                      setUsernameError(t('usernameTooLong'))
+                      setUsernameValid(false)
+                    } else if (!usernameRegex.test(value)) {
+                      setUsernameError(t('usernameInvalidChars'))
+                      setUsernameValid(false)
+                    } else {
+                      // Valid format
+                      const currentUsername = decodeURIComponent(params.username)
+                      if (value === currentUsername) {
+                        setUsernameError('')
+                        setUsernameValid(false)
+                      } else {
+                        setUsernameError('')
+                        setUsernameValid(true)
+                      }
+                    }
+                  }}
+                  placeholder="your_username"
+                  maxLength={30}
+                  className={
+                    usernameError 
+                      ? 'border-destructive focus-visible:ring-destructive' 
+                      : usernameValid 
+                      ? 'border-green-500 focus-visible:ring-green-500' 
+                      : ''
+                  }
+                />
+                {usernameValid && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                )}
+                {usernameError && (
+                  <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                )}
+              </div>
+              {usernameError ? (
+                <p className="text-sm text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {usernameError}
+                </p>
+              ) : usernameValid ? (
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {t('usernameAvailable')}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t('usernameRequirements')}
+                </p>
+              )}
             </div>
 
             {/* Basic Info */}

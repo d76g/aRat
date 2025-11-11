@@ -91,7 +91,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const currentUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { status: true, isAdmin: true }
+            select: { status: true, isAdmin: true, username: true }
           })
           
           if (currentUser) {
@@ -100,9 +100,10 @@ export const authOptions: NextAuthOptions = {
               throw new Error('Account suspended')
             }
             
-            // Update session with current status
+            // Update session with current data
             session.user.status = currentUser.status
             session.user.isAdmin = currentUser.isAdmin
+            session.user.username = currentUser.username
           }
         } catch (error) {
           logger.warn('Session validation error', { error: (error as Error)?.message })

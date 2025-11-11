@@ -154,6 +154,15 @@ export const en = {
   reachOutEmail: 'Reach out by email:',
   settings: 'Settings',
   
+  // Username validation
+  username: 'Username',
+  usernameRequirements: 'Only lowercase letters, numbers, periods (.) and underscores (_) allowed. Min 3 characters.',
+  usernameInvalidChars: 'Username can only contain lowercase letters, numbers, periods (.) and underscores (_)',
+  usernameTooShort: 'Username must be at least 3 characters long',
+  usernameTooLong: 'Username must be less than 30 characters',
+  usernameAlreadyTaken: 'Username is already taken',
+  usernameAvailable: 'Username is available',
+
   // Reporting
   reportContent: 'Report Content',
   reportPostDescription: 'Help us keep the community safe by reporting inappropriate posts.',

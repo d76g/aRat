@@ -156,6 +156,15 @@ export const nl: TranslationKeys = {
   reachOutEmail: 'Neem contact op via e-mail:',
   settings: 'Instellingen',
   
+  // Username validation
+  username: 'Gebruikersnaam',
+  usernameRequirements: 'Alleen kleine letters, cijfers, punten (.) en underscores (_) toegestaan. Minimaal 3 tekens.',
+  usernameInvalidChars: 'Gebruikersnaam mag alleen kleine letters, cijfers, punten (.) en underscores (_) bevatten',
+  usernameTooShort: 'Gebruikersnaam moet minimaal 3 tekens lang zijn',
+  usernameTooLong: 'Gebruikersnaam moet minder dan 30 tekens zijn',
+  usernameAlreadyTaken: 'Gebruikersnaam is al in gebruik',
+  usernameAvailable: 'Gebruikersnaam is beschikbaar',
+
   // Reporting
   reportContent: 'Inhoud Rapporteren',
   reportPostDescription: 'Help ons de gemeenschap veilig te houden door ongepaste berichten te rapporteren.',
