@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -210,7 +210,7 @@ export default function ProfileSettings({ params }: { params: { username: string
     }
 
     setSaving(true)
-    toast.loading('Saving your profile changes...', { id: 'profile-save' })
+    const loadingToast = toast.loading('Saving your profile changes...')
     try {
       const formData = new FormData()
       formData.append('username', profileData.username)
@@ -230,7 +230,7 @@ export default function ProfileSettings({ params }: { params: { username: string
 
       if (response.ok) {
         const updatedUser = await response.json()
-        toast.success('Profile updated successfully!', { id: 'profile-save' })
+        toast.success('Profile updated successfully!', { id: loadingToast })
         setAvatarFile(null)
         setAvatarPreview(null)
         
@@ -251,11 +251,11 @@ export default function ProfileSettings({ params }: { params: { username: string
         }
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to update profile', { id: 'profile-save' })
+        toast.error(error.error || 'Failed to update profile', { id: loadingToast })
       }
     } catch (error) {
       console.error('Error updating profile:', error)
-      toast.error('Failed to update profile', { id: 'profile-save' })
+      toast.error('Failed to update profile', { id: loadingToast })
     } finally {
       setSaving(false)
     }
@@ -273,7 +273,7 @@ export default function ProfileSettings({ params }: { params: { username: string
     }
 
     setSaving(true)
-    toast.loading('Changing your password...', { id: 'password-change' })
+    const loadingToast = toast.loading('Changing your password...')
     try {
       const response = await fetch('/api/profile/change-password', {
         method: 'POST',
@@ -285,7 +285,7 @@ export default function ProfileSettings({ params }: { params: { username: string
       })
 
       if (response.ok) {
-        toast.success('Password changed successfully!', { id: 'password-change' })
+        toast.success('Password changed successfully!', { id: loadingToast })
         setPasswordData({
           currentPassword: '',
           newPassword: '',
@@ -293,11 +293,11 @@ export default function ProfileSettings({ params }: { params: { username: string
         })
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to change password', { id: 'password-change' })
+        toast.error(error.error || 'Failed to change password', { id: loadingToast })
       }
     } catch (error) {
       console.error('Error changing password:', error)
-      toast.error('Failed to change password', { id: 'password-change' })
+      toast.error('Failed to change password', { id: loadingToast })
     } finally {
       setSaving(false)
     }
@@ -305,24 +305,24 @@ export default function ProfileSettings({ params }: { params: { username: string
 
   const handleDeleteAccount = async () => {
     setSaving(true)
-    toast.loading('Deleting your account...', { id: 'account-delete' })
+    const loadingToast = toast.loading('Deleting your account...')
     try {
       const response = await fetch('/api/profile/delete', {
         method: 'DELETE'
       })
 
       if (response.ok) {
-        toast.success('Account deleted successfully. Goodbye!', { id: 'account-delete', duration: 3000 })
+        toast.success('Account deleted successfully. Goodbye!', { id: loadingToast, duration: 3000 })
         setTimeout(() => {
           router.push('/auth/signin')
         }, 2000)
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to delete account', { id: 'account-delete' })
+        toast.error(error.error || 'Failed to delete account', { id: loadingToast })
       }
     } catch (error) {
       console.error('Error deleting account:', error)
-      toast.error('Failed to delete account', { id: 'account-delete' })
+      toast.error('Failed to delete account', { id: loadingToast })
     } finally {
       setSaving(false)
     }
@@ -330,7 +330,7 @@ export default function ProfileSettings({ params }: { params: { username: string
 
   const handleUpdateNotifications = async () => {
     setSaving(true)
-    toast.loading('Updating notification preferences...', { id: 'notification-update' })
+    const loadingToast = toast.loading('Updating notification preferences...')
     try {
       const response = await fetch('/api/profile/notifications', {
         method: 'PUT',
@@ -339,14 +339,14 @@ export default function ProfileSettings({ params }: { params: { username: string
       })
 
       if (response.ok) {
-        toast.success('Notification preferences updated successfully!', { id: 'notification-update' })
+        toast.success('Notification preferences updated successfully!', { id: loadingToast })
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to update notification preferences', { id: 'notification-update' })
+        toast.error(error.error || 'Failed to update notification preferences', { id: loadingToast })
       }
     } catch (error) {
       console.error('Error updating notification preferences:', error)
-      toast.error('Failed to update notification preferences', { id: 'notification-update' })
+      toast.error('Failed to update notification preferences', { id: loadingToast })
     } finally {
       setSaving(false)
     }
