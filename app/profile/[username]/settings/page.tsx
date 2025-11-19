@@ -160,7 +160,7 @@ export default function ProfileSettings({ params }: { params: { username: string
       const previewUrl = URL.createObjectURL(file)
       setOriginalFile(file)
       setCropperImage(previewUrl)
-      toast.info('Crop your image to adjust your avatar')
+      toast('Crop your image to adjust your avatar', { icon: 'ℹ️' })
     }
   }
 
