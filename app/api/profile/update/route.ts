@@ -14,11 +14,11 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData()
-    const username = formData.get('username') as string
-    const firstName = formData.get('firstName') as string
-    const lastName = formData.get('lastName') as string  
-    const bio = formData.get('bio') as string
-    const email = formData.get('email') as string
+    const username = formData.get('username') as string | null
+    const firstName = formData.get('firstName') as string | null
+    const lastName = formData.get('lastName') as string | null
+    const bio = formData.get('bio') as string | null // Can be empty string
+    const email = formData.get('email') as string | null
     const avatarFile = formData.get('avatar') as File | null
 
     // Validate username format
@@ -87,11 +87,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user profile
+    // Note: FormData.get() returns null if field doesn't exist, but returns empty string if field exists but is empty
     const updateData: any = {
-      firstName: firstName || null,
-      lastName: lastName || null,
-      bio: bio || null,
-      email: email
+      firstName: firstName !== null ? firstName : null,
+      lastName: lastName !== null ? lastName : null,
+      bio: bio !== null ? bio : null, // Preserve empty string (bio can be empty string, null means field wasn't sent)
+    }
+    
+    // Only update email if it's provided and not empty
+    if (email && email.trim() !== '') {
+      updateData.email = email
     }
 
     if (username) {

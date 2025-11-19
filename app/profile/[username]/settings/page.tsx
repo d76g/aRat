@@ -234,6 +234,16 @@ export default function ProfileSettings({ params }: { params: { username: string
         setAvatarFile(null)
         setAvatarPreview(null)
         
+        // Update local state immediately with the response data
+        setProfileData({
+          username: updatedUser.username || '',
+          firstName: updatedUser.firstName || '',
+          lastName: updatedUser.lastName || '',
+          bio: updatedUser.bio || '', // Ensure bio is preserved, even if empty string
+          email: updatedUser.email || '',
+          avatar: updatedUser.avatar || null,
+        })
+        
         // Decode the current URL username to compare properly
         const currentUsername = decodeURIComponent(params.username)
         
@@ -246,8 +256,6 @@ export default function ProfileSettings({ params }: { params: { username: string
           setTimeout(() => {
             window.location.href = `/profile/${encodeURIComponent(updatedUser.username)}/settings`
           }, 1000)
-        } else {
-          await fetchProfileData()
         }
       } else {
         const error = await response.json()
