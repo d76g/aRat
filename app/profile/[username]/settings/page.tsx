@@ -160,6 +160,7 @@ export default function ProfileSettings({ params }: { params: { username: string
       const previewUrl = URL.createObjectURL(file)
       setOriginalFile(file)
       setCropperImage(previewUrl)
+      toast.info('Crop your image to adjust your avatar')
     }
   }
 
@@ -179,6 +180,7 @@ export default function ProfileSettings({ params }: { params: { username: string
       URL.revokeObjectURL(URL.createObjectURL(originalFile))
     }
     setOriginalFile(null)
+    toast.success('Avatar updated! Click "Save Changes" to apply')
   }
 
   const handleCropCancel = () => {
@@ -193,21 +195,22 @@ export default function ProfileSettings({ params }: { params: { username: string
     // Validate username format
     const usernameRegex = /^[a-z0-9._]+$/
     if (profileData.username && !usernameRegex.test(profileData.username)) {
-      toast.error('Username can only contain lowercase letters, numbers, periods (.) and underscores (_)')
+      toast.error(t('usernameInvalidChars'))
       return
     }
 
     if (profileData.username && profileData.username.length < 3) {
-      toast.error('Username must be at least 3 characters long')
+      toast.error(t('usernameTooShort'))
       return
     }
 
     if (profileData.username && profileData.username.length > 30) {
-      toast.error('Username must be less than 30 characters')
+      toast.error(t('usernameTooLong'))
       return
     }
 
     setSaving(true)
+    toast.loading('Saving your profile changes...', { id: 'profile-save' })
     try {
       const formData = new FormData()
       formData.append('username', profileData.username)
@@ -227,7 +230,7 @@ export default function ProfileSettings({ params }: { params: { username: string
 
       if (response.ok) {
         const updatedUser = await response.json()
-        toast.success('Profile updated successfully!')
+        toast.success('Profile updated successfully!', { id: 'profile-save' })
         setAvatarFile(null)
         setAvatarPreview(null)
         
@@ -236,20 +239,23 @@ export default function ProfileSettings({ params }: { params: { username: string
         
         // If username changed, redirect to new profile URL and refresh session
         if (updatedUser.username && updatedUser.username !== currentUsername) {
+          toast.success(`Username changed to @${updatedUser.username}. Redirecting...`, { duration: 2000 })
           // Use router.replace to update URL without adding to history
           router.replace(`/profile/${encodeURIComponent(updatedUser.username)}/settings`)
           // Force a page reload to update the session
-          window.location.href = `/profile/${encodeURIComponent(updatedUser.username)}/settings`
+          setTimeout(() => {
+            window.location.href = `/profile/${encodeURIComponent(updatedUser.username)}/settings`
+          }, 1000)
         } else {
           await fetchProfileData()
         }
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to update profile')
+        toast.error(error.error || 'Failed to update profile', { id: 'profile-save' })
       }
     } catch (error) {
       console.error('Error updating profile:', error)
-      toast.error('Failed to update profile')
+      toast.error('Failed to update profile', { id: 'profile-save' })
     } finally {
       setSaving(false)
     }
@@ -267,6 +273,7 @@ export default function ProfileSettings({ params }: { params: { username: string
     }
 
     setSaving(true)
+    toast.loading('Changing your password...', { id: 'password-change' })
     try {
       const response = await fetch('/api/profile/change-password', {
         method: 'POST',
@@ -278,7 +285,7 @@ export default function ProfileSettings({ params }: { params: { username: string
       })
 
       if (response.ok) {
-        toast.success('Password changed successfully!')
+        toast.success('Password changed successfully!', { id: 'password-change' })
         setPasswordData({
           currentPassword: '',
           newPassword: '',
@@ -286,11 +293,11 @@ export default function ProfileSettings({ params }: { params: { username: string
         })
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to change password')
+        toast.error(error.error || 'Failed to change password', { id: 'password-change' })
       }
     } catch (error) {
       console.error('Error changing password:', error)
-      toast.error('Failed to change password')
+      toast.error('Failed to change password', { id: 'password-change' })
     } finally {
       setSaving(false)
     }
@@ -298,21 +305,24 @@ export default function ProfileSettings({ params }: { params: { username: string
 
   const handleDeleteAccount = async () => {
     setSaving(true)
+    toast.loading('Deleting your account...', { id: 'account-delete' })
     try {
       const response = await fetch('/api/profile/delete', {
         method: 'DELETE'
       })
 
       if (response.ok) {
-        toast.success('Account deleted successfully')
-        router.push('/auth/signin')
+        toast.success('Account deleted successfully. Goodbye!', { id: 'account-delete', duration: 3000 })
+        setTimeout(() => {
+          router.push('/auth/signin')
+        }, 2000)
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to delete account')
+        toast.error(error.error || 'Failed to delete account', { id: 'account-delete' })
       }
     } catch (error) {
       console.error('Error deleting account:', error)
-      toast.error('Failed to delete account')
+      toast.error('Failed to delete account', { id: 'account-delete' })
     } finally {
       setSaving(false)
     }
@@ -320,6 +330,7 @@ export default function ProfileSettings({ params }: { params: { username: string
 
   const handleUpdateNotifications = async () => {
     setSaving(true)
+    toast.loading('Updating notification preferences...', { id: 'notification-update' })
     try {
       const response = await fetch('/api/profile/notifications', {
         method: 'PUT',
@@ -328,14 +339,14 @@ export default function ProfileSettings({ params }: { params: { username: string
       })
 
       if (response.ok) {
-        toast.success('Notification preferences updated successfully!')
+        toast.success('Notification preferences updated successfully!', { id: 'notification-update' })
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to update notification preferences')
+        toast.error(error.error || 'Failed to update notification preferences', { id: 'notification-update' })
       }
     } catch (error) {
       console.error('Error updating notification preferences:', error)
-      toast.error('Failed to update notification preferences')
+      toast.error('Failed to update notification preferences', { id: 'notification-update' })
     } finally {
       setSaving(false)
     }
