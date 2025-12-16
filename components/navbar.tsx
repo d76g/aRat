@@ -128,7 +128,7 @@ export function Navbar() {
                 </Link>
               </div>
               <Link 
-                href="https://www.voordekunst.nl/projecten/20029-prieelo-a-platform-turning-scrap-to-snap"
+                href="https://ko-fi.com/prieelo/shop"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hidden sm:block"

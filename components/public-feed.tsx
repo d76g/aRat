@@ -140,7 +140,7 @@ export function PublicFeed() {
               </p>
             </div>
             <a 
-              href="https://www.voordekunst.nl/projecten/20029-prieelo-a-platform-turning-scrap-to-snap"
+              href="https://ko-fi.com/prieelo/shop"
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0"
