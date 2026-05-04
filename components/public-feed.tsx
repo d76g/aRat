@@ -155,6 +155,7 @@ export function PublicFeed() {
             </a>
           </div>
         </div>
+        */}
 
         {error && (
           <div className="text-center py-8">
@@ -163,7 +164,6 @@ export function PublicFeed() {
               {t('tryAgain')}
             </Button>
           </div>
-        */}
         )}
 
         {posts?.length === 0 && !error && (
