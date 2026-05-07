@@ -125,7 +125,7 @@ export function PublicFeed() {
           </div>
         </div>
 
-        {/* Campaign Banner - temporarily disabled */}
+       {/* Campaign Banner - temporarily disabled */}
         {/*
         <div className="bg-gradient-to-r from-[#ed4924]/10 to-[#ed4924]/5 border-l-4 border-[#ed4924] rounded-lg p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
