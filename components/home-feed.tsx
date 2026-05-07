@@ -156,7 +156,8 @@ export function HomeFeed() {
           </div>
         </div>
 
-        {/* Campaign Banner */}
+        {/* Campaign Banner - temporarily disabled */}
+        {/*
         <div className="bg-gradient-to-r from-[#ed4924]/10 to-[#ed4924]/5 border-l-4 border-[#ed4924] rounded-lg p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
@@ -185,6 +186,7 @@ export function HomeFeed() {
             </a>
           </div>
         </div>
+        */}
 
         {error && (
           <div className="text-center py-8">

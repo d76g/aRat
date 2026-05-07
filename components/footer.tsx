@@ -24,7 +24,7 @@ export function Footer() {
           isFullWidthPage ? "w-full" : "max-w-6xl mx-auto"
         )}
       >
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {/* Logo Section */}
           <div className="space-y-4">
             <div className="relative w-40 h-16 mb-2">
@@ -75,7 +75,8 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Campaign */}
+          {/* Campaign Banner - temporarily disabled */}
+        {/*
           <div className="space-y-4">
             <h4 className="font-semibold text-lg text-[#a1c0e5]">Campaign</h4>
             <div className="space-y-2 text-sm text-[#324426]">
@@ -96,20 +97,22 @@ export function Footer() {
               </a>
             </div>
           </div>
+          */}
         </div>
+        
 
         <Separator className="bg-[#324426]/20 mb-8" />
 
         <div className="text-center space-y-4">
           <p className="text-[#324426]/80 text-sm">
-            © 2025 ARaT.eco B.V. All rights reserved. Made with ♻️ for a sustainable future.
+            © 2026 ARaT.eco B.V. All rights reserved. Made with ♻️ for a sustainable future.
           </p>
           <div className="flex justify-center space-x-4 text-xs text-[#a1c0e5]">
             <span>Raw → Remake → Reveal</span>
             <span>•</span>
             <span>Fighting Greenwashing</span>
             <span>•</span>
-            <span>Christmas 2025</span>
+            <span>Sustainable Future</span>
           </div>
         </div>
       </div>
