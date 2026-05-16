@@ -16,12 +16,12 @@ Company: ARaT.eco B.V. (Netherlands) · KVK: 96388056
 - **File storage**: AWS S3 in production / local filesystem on dev VPS
 - **Hosting**: Ubuntu VPS (manual deploy via SSH + PM2 + Nginx)
 
-For a deeper current documentation, check below documents
+For a deeper current documentation, check the below .md files
 
-**application error handeling** --> DEBUGGING_GUIDE.md & ERROR_FIXES_SUMMARY.md
-**Deployment Steps** --> DEPLOYMENT.md
-**Technology used** --> app-technology.md
-**Username** --> USERNAME_CHANGE_FEATURE.md
+- **application error handeling** --> DEBUGGING_GUIDE.md & ERROR_FIXES_SUMMARY.md
+- **Deployment Steps** --> DEPLOYMENT.md
+- **Technology used** --> app-technology.md
+- **Username** --> USERNAME_CHANGE_FEATURE.md
 
 ---
 
